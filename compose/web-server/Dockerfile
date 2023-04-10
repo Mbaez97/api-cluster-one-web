@@ -1,5 +1,5 @@
-FROM python:3.8-slim-buster as base
-# FROM java:11
+# FROM python:3.8-slim-buster as base
+FROM openjdk:11-jre-slim as base
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -11,22 +11,19 @@ RUN apt-get update \
 
 FROM base as builder
 
-RUN apt-get install build-essential gcc python3-dev postgresql -y \
+RUN apt-get install build-essential gcc python3 postgresql -y \
+  && apt-get install -y python3-dev \
+  && apt-get install -y python3-pip \
   # psycopg2 dependencies
   && apt-get install -y libpq-dev \
-  # && apt-get install -y openjdk-11-jdk \
-  && apt-get -y install default-jre-headless\
+  # Install all python:3.9-slim-buster dependencies
   # cleaning up unused files
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/*
 
 COPY ./requirements.txt /
 
-RUN pip install --prefix='/install' -r /requirements.txt
-
-FROM base
-
-COPY --from=builder /install /usr/local
+RUN pip install -r /requirements.txt
 
 COPY . /app
 
