@@ -1,0 +1,36 @@
+version: "3"
+
+volumes:
+  local_postgres_data: {}
+  local_postgres_data_backups: {}
+
+services:
+  web_server:
+    &pythonbuild
+    platform: "linux/amd64"
+    build:
+      context: .
+      dockerfile: ./compose/web-server/Dockerfile
+    image: api-cluster-one-web-server
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    environment:
+      - DEBUG=True
+    ports:
+      - "8203:8000"
+    depends_on:
+      - db
+    command: uvicorn web_server:app --reload --host 0.0.0.0 --log-level debug
+
+  db:
+    build:
+      context: .
+      dockerfile: ./compose/db/Dockerfile
+    image: api-cluster-one-db
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data
+      - local_postgres_data_backups:/backups
+    env_file:
+      - ./.env
