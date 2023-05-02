@@ -1,19 +1,11 @@
 """Protein models"""
 
-from sqlalchemy import (
-    Column,
-    String,
-    Text,
-    Float,
-    Boolean,
-    Integer,
-    ForeignKey
-)
+from sqlalchemy import Column, String, Text, Float, Boolean, Integer, ForeignKey
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
-from src.db.base_class import BaseWithDatetime
-from src.models.style import Style
+from app.db.base_class import BaseWithDatetime
+from app.models.style import Style
 
 
 class Protein(BaseWithDatetime):

@@ -3,7 +3,7 @@
 from sqlalchemy import Column, Integer, JSON
 from sqlalchemy.ext.declarative import declared_attr
 
-from src.db.base_class import BaseWithDatetime
+from app.db.base_class import BaseWithDatetime
 
 
 class Style(BaseWithDatetime):
