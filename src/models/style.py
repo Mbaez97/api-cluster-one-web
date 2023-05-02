@@ -16,6 +16,7 @@ class Style(BaseWithDatetime):
         (1, "Edge"),
     ]
 
+    id = Column(Integer, primary_key=True, index=True)
     ccs_styles = Column(JSON, nullable=False)
     cytoscape_styles = Column(JSON, nullable=False)
     type = Column(Integer, nullable=False, default=0)
