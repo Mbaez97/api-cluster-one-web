@@ -12,7 +12,7 @@ logger = logging.getLogger("Autenticacion")
 FORMAT = "%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT)
 
-app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI()
 
 origins = [
     "*",
@@ -47,3 +47,4 @@ async def test_root():
 
 
 # app.include_router(router_v2_dashboard, prefix="/v2/dashboard", tags=["v2_dashboard"])
+
