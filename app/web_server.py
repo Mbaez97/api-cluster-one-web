@@ -1,10 +1,9 @@
 import logging
 
 from brotli_middleware import BrotliMiddleware
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
-from pydantic.schema import date
 from starlette.middleware.gzip import GZipMiddleware, Headers, Receive, Scope, Send
 
 
@@ -47,4 +46,3 @@ async def test_root():
 
 
 # app.include_router(router_v2_dashboard, prefix="/v2/dashboard", tags=["v2_dashboard"])
-
