@@ -22,7 +22,7 @@ services:
       - "8203:8000"
     depends_on:
       - db
-    command: uvicorn web_server:app --reload --host 0.0.0.0 --log-level debug
+    command: uvicorn app.web_server:app --reload --host 0.0.0.0 --log-level debug
 
   db:
     build:
