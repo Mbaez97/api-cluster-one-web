@@ -1,3 +1,36 @@
 pdbpp==0.10.3
 requests==2.27.1
+
+fastapi==0.95.1
+fastapi-pagination==0.12.2
+gunicorn==20.0.4
+uvicorn==0.22.0
+orjson==3.5.0
+pytz==2020.1
+aiofiles==0.6.0
+
+# Request
+aiohttp==3.6.2
+requests
+
+# Autenticacion
+pyjwt==1.7.1  # https://pyjwt.readthedocs.io/
+
+# DB
+psycopg2-binary==2.9.6  # https://github.com/psycopg/psycopg2
+aiopg==1.0.0  # https://aiopg.readthedocs.io/en/stable/
+sqlalchemy==2.0.12 # https://www.sqlalchemy.org/
+
+# Redis
+aioredis==1.3.1
+
+# Linter
+flake8==3.8.3
 black==22.3.0
+
+# compresion
+brotli-middleware==0.3
+
+# Excel
+XlsxWriter==3.1.0
+
