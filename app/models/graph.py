@@ -5,8 +5,8 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
 # Models
-from src.db.base_class import BaseWithDatetime
-from src.models.edge import Edge
+from app.db.base_class import BaseWithDatetime
+from app.models.edge import Edge
 
 
 class AbstractGraph(BaseWithDatetime):
@@ -30,9 +30,7 @@ class PPIGraph(AbstractGraph):
     preloaded = Column(Boolean, nullable=False, default=False)
     # Definición de la relación muchos a muchos con la tabla "edges"
     edges = relationship(
-        Edge,
-        secondary="edge_ppi_interaction",
-        back_populates="ppi_interactions"
+        Edge, secondary="edge_ppi_interaction", back_populates="ppi_interactions"
     )
 
 
@@ -49,5 +47,5 @@ class ClusterGraph(AbstractGraph):
     edges = relationship(
         Edge,
         secondary="edge_cluster_interaction",
-        back_populates="cluster_interactions"
+        back_populates="cluster_interactions",
     )
