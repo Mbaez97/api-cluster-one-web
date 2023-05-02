@@ -1,6 +1,6 @@
 """Edge models"""
 
-from sqlalchemy import Column, String, Text, Float, Boolean, Integer, ForeignKey
+from sqlalchemy import Column, Float, Boolean, Integer, ForeignKey
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
@@ -21,8 +21,9 @@ class Edge(BaseWithDatetime):
         (3, "Both"),
     ]
 
-    protein_a_id = Column(Integer, ForeignKey("Protein.id"), nullable=False)
-    protein_b_id = Column(Integer, ForeignKey("Protein.id"), nullable=False)
+    id = Column(Integer, primary_key=True, index=True)
+    protein_a_id = Column(Integer, ForeignKey("protein.id"), nullable=False)
+    protein_b_id = Column(Integer, ForeignKey("protein.id"), nullable=False)
     protein_a = relationship(Protein, foreign_keys=[protein_a_id])
     protein_b = relationship(Protein, foreign_keys=[protein_b_id])
     weight = Column(Float, nullable=False)
