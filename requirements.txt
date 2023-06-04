@@ -34,3 +34,6 @@ brotli-middleware==0.3
 # Excel
 XlsxWriter==3.1.0
 
+alembic==1.11.1
+
+
