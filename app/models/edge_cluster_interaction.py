@@ -12,4 +12,4 @@ class EdgeClusterInteraction(BaseWithDatetime):
 
     id = Column(Integer, primary_key=True, index=True)
     edge_id = Column(Integer, ForeignKey("edge.id"))
-    ppi_interaction_id = Column(Integer, ForeignKey("ppi_graph.id"))
+    cluster_graph_id = Column(Integer, ForeignKey("cluster_graph.id"))

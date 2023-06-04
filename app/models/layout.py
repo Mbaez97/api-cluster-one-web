@@ -18,3 +18,4 @@ class Layout(BaseWithDatetime):
     node_spacing = Column(Float, nullable=False, default=0.0)
     randomize = Column(Boolean, nullable=False, default=False)
     max_simulation_time = Column(Integer, nullable=False, default=1000)
+    graph = relationship("AbstractGraph", back_populates="layout")

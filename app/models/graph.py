@@ -32,7 +32,7 @@ class PPIGraph(AbstractGraph):
     name = Column(String(255), nullable=False)
     preloaded = Column(Boolean, nullable=False, default=False)
     # Definición de la relación muchos a muchos con la tabla "edges"
-    edges = relationship(
+    edge = relationship(
         Edge, secondary="edge_ppi_interaction", back_populates="ppi_interactions"
     )
 
