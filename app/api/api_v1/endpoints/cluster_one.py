@@ -12,8 +12,17 @@ from sqlalchemy.orm import Session
 from app.api import deps
 from app import crud
 from app.api.utils import execute_cluster_one
+from uuid import uuid4
+from app.models import Layout
+
 
 router = APIRouter()
+
+def get_default_uuid():
+    return str(uuid4())
+
+def get_random_layout():
+    return random.choice(["force", "cose", "circle", "concentric", "grid", "breadthfirst", "cose-bilkent", "cola", "euler", "spread", "dagre", "klay", "random"])
 
 # ClusterOne API
 @router.post("/quickrun/")
@@ -27,7 +36,6 @@ def get_quickrun(
     Get All Cluster data
     TODO: 
         - Add a file upload
-        - create clusters in db, and save data in media, not delete it
         - identify complex and create it in db, associate it with clusters
     """
     _base_command = "java -jar cluster_one-1.0.jar"
@@ -36,24 +44,37 @@ def get_quickrun(
     #     _base_command = "java -jar cluster_one-1.0.jar"
     # else:
         # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
-    _final_command = "> complex_cluster_response.txt"
+    _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
+    _final_command = "> " + _file_name
     if pp_id:
         ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=pp_id)
         if not ppi_obj:
             raise HTTPException(status_code=404, detail="PPI not found")
-        _command = f"{_base_command} {ppi_obj.data} {_final_command}"
+        _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
     else:
         # TODO: User send txt in body and save it in a file
         # And then run the command With the file
         _command = f"{_base_command} {_final_command}"
-    response = execute_cluster_one(_command)
-    _clusters = {}
+    
+    response = execute_cluster_one(_command, file_name=_file_name)
+    _clusters = []
     if cant_clusters:
         response = response[:cant_clusters]
     for complex in response:
+        _layout = db.query(Layout).filter(Layout.name == "random").first()
+        _obj = {
+            "external_weight": complex[4],
+            "internal_weight": complex[3],
+            "density": complex[2],
+            "size": complex[1],
+            "quality": complex[5],
+            "layout": _layout,
+            "data": "/app/app/media/clusters/" + _file_name,
+        }
+        _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
         _proteins_obj = []
         _edges = []
-        _proteins = complex.split("\t")
+        _proteins = complex[7].split(" ")
         for protein in _proteins:
             _protein_obj = crud.protein.get_by_name(db, name=protein)
             if not _protein_obj:
@@ -97,7 +118,8 @@ def get_quickrun(
                         "classes": "pp"
                     }
                     _edges.append(_edge)
-        _clusters.update({
+        _clusters.append({
+            "cluster_id": _cluster_obj.id,
             "nodes": _proteins_obj,
             "edges": _edges
         })
@@ -115,7 +137,6 @@ def get_run(
     Get All Cluster data
     TODO: 
         - Add a file upload
-        - create clusters in db, and save data in media, not delete it
         - identify complex and create it in db, associate it with clusters
     """
     _base_command = "java -jar cluster_one-1.0.jar"
@@ -124,24 +145,36 @@ def get_run(
     #     _base_command = "java -jar cluster_one-1.0.jar"
     # else:
         # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
-    _final_command = "> complex_cluster_response.txt"
+    _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
+    _final_command = "> " + _file_name
     if pp_id:
         ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=pp_id)
         if not ppi_obj:
             raise HTTPException(status_code=404, detail="PPI not found")
-        _command = f"{_base_command} {ppi_obj.data} {_final_command}"
+        _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
     else:
         # TODO: User send txt in body and save it in a file
         # And then run the command With the file
         _command = f"{_base_command} {_final_command}"
-    response = execute_cluster_one(_command, body)
-    _clusters = {}
+    response = execute_cluster_one(_command, file_name=_file_name, params=body)
+    _clusters = []
     if cant_clusters:
         response = response[:cant_clusters]
     for complex in response:
+        _layout = db.query(Layout).filter(Layout.name == "random").first()
+        _obj = {
+            "external_weight": complex[4],
+            "internal_weight": complex[3],
+            "density": complex[2],
+            "size": complex[1],
+            "quality": complex[5],
+            "layout": _layout,
+            "data": "/app/app/media/clusters/" + _file_name,
+        }
+        _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
         _proteins_obj = []
         _edges = []
-        _proteins = complex.split("\t")
+        _proteins = complex[7].split(" ")
         for protein in _proteins:
             _protein_obj = crud.protein.get_by_name(db, name=protein)
             if not _protein_obj:
@@ -185,7 +218,8 @@ def get_run(
                         "classes": "pp"
                     }
                     _edges.append(_edge)
-        _clusters.update({
+        _clusters.append({
+            "cluster_id": _cluster_obj.id,
             "nodes": _proteins_obj,
             "edges": _edges
         })

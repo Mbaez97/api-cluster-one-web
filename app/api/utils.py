@@ -1,12 +1,12 @@
 import random
 import os
+from libs.lib_manejo_csv import lee_csv
 
 def get_random_color():
     r1 = random.randint(0, 255)
     r2 = random.randint(0, 255)
     r3 = random.randint(0, 255)
     return '#%02X%02X%02X' % (r1, r2, r3)
-
 
 def get_complex_protein_color():
     return '#%02X%02X%02X' % (255, 0, 0)
@@ -28,12 +28,16 @@ def generate_random_styles():
     }
     return _style
 
-def execute_cluster_one(command: str, params: dict = None):
+def execute_cluster_one(command: str, params: dict = None, file_name: str = None):
     if params:
         command = command + " " + " ".join([f"{k} {v}" for k, v in params.items()])
     print(command)
     os.system(command)
-    with open("complex_cluster_response.txt", "r") as f:
-        response = f.read()
-    os.system("rm complex_cluster_response.txt")
-    return response.split("\n")
+    if file_name:
+        response = lee_csv(file_name)
+        os.system(f"mv {file_name} /app/app/media/clusters/{file_name}")
+        return response
+    else:
+        response = lee_csv("complex_cluster_response.csv")
+        os.system("mv complex_cluster_response.csv /app/app/media/clusters/complex_cluster_response.csv")
+    return response

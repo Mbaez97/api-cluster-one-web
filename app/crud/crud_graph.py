@@ -25,5 +25,20 @@ class CRUDClusterGraph(CRUDBase[ClusterGraph, schemas.GraphCreate, schemas.Graph
         """Get cluster by id"""
         return db.query(ClusterGraph).filter(ClusterGraph.id == id).first()
     
+    def create_cluster(self, db, *, obj: dict) -> ClusterGraph:
+        """Create cluster"""
+        db_obj = ClusterGraph(
+            external_weight=obj["external_weight"],
+            internal_weight=obj["internal_weight"],
+            density=obj["density"],
+            size=obj["size"],
+            quality=obj["quality"],
+            layout=obj["layout"],
+            data=obj["data"],
+        )
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
 cluster_graph = CRUDClusterGraph(ClusterGraph)
 ppi_graph = CRUDPPIGraph(PPIGraph)
