@@ -47,6 +47,7 @@ class ClusterGraph(AbstractGraph):
     quality = Column(Float, nullable=False)
     external_weight = Column(Float, nullable=False)
     internal_weight = Column(Float, nullable=False)
+    data = Column(String(255), nullable=True)
     # Definición de la relación muchos a muchos con la tabla "edges"
     edges = relationship(
         Edge,
