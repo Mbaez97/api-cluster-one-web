@@ -1,6 +1,5 @@
 import random
 import os
-from time import sleep
 
 def get_random_color():
     r1 = random.randint(0, 255)
@@ -29,9 +28,11 @@ def generate_random_styles():
     }
     return _style
 
-def execute_cluster_one(command: str, *args):
+def execute_cluster_one(command: str, params: dict = None):
+    if params:
+        command = command + " " + " ".join([f"{k} {v}" for k, v in params.items()])
+    print(command)
     os.system(command)
-    sleep(2)
     with open("complex_cluster_response.txt", "r") as f:
         response = f.read()
     os.system("rm complex_cluster_response.txt")
