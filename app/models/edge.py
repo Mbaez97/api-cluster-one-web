@@ -22,8 +22,8 @@ class Edge(BaseWithDatetime):
     ]
 
     id = Column(Integer, primary_key=True, index=True)
-    protein_a_id = Column(Integer, ForeignKey("protein.id"), nullable=False)
-    protein_b_id = Column(Integer, ForeignKey("protein.id"), nullable=False)
+    protein_a_id = Column(Integer, ForeignKey("protein.id"), nullable=True)
+    protein_b_id = Column(Integer, ForeignKey("protein.id"), nullable=True)
     protein_a = relationship(Protein, foreign_keys=[protein_a_id])
     protein_b = relationship(Protein, foreign_keys=[protein_b_id])
     weight = Column(Float, nullable=False)
