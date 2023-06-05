@@ -27,6 +27,8 @@ def get_quickrun(
     Get All Cluster data
     TODO: 
         - Add a file upload
+        - create clusters in db, and save data in media, not delete it
+        - identify complex and create it in db, associate it with clusters
     """
     _base_command = "java -jar cluster_one-1.0.jar"
 
@@ -113,6 +115,8 @@ def get_run(
     Get All Cluster data
     TODO: 
         - Add a file upload
+        - create clusters in db, and save data in media, not delete it
+        - identify complex and create it in db, associate it with clusters
     """
     _base_command = "java -jar cluster_one-1.0.jar"
 
