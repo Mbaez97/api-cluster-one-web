@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 from starlette.middleware.gzip import GZipMiddleware, Headers, Receive, Scope, Send
+from app.api.api_v1.api import api_router
 
 
 logger = logging.getLogger("Autenticacion")
@@ -46,3 +47,6 @@ async def test_root():
 
 
 # app.include_router(router_v2_dashboard, prefix="/v2/dashboard", tags=["v2_dashboard"])
+app.include_router(
+    api_router, prefix="/v1/api", tags=["api_v1"]
+)
