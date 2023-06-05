@@ -45,7 +45,7 @@ def get_quickrun(
         # And then run the command With the file
         _command = f"{_base_command} {_final_command}"
     response = execute_cluster_one(_command)
-    _clusters = []
+    _clusters = {}
     if cant_clusters:
         response = response[:cant_clusters]
     for complex in response:
@@ -95,7 +95,7 @@ def get_quickrun(
                         "classes": "pp"
                     }
                     _edges.append(_edge)
-        _clusters.append({
+        _clusters.update({
             "nodes": _proteins_obj,
             "edges": _edges
         })
