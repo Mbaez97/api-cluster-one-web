@@ -31,6 +31,7 @@ class PPIGraph(AbstractGraph):
     id = Column(Integer, ForeignKey('graph.id') , primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     preloaded = Column(Boolean, nullable=False, default=False)
+    data = Column(String(255), nullable=True)
     # Definición de la relación muchos a muchos con la tabla "edges"
     edge = relationship(
         Edge, secondary="edge_ppi_interaction", back_populates="ppi_interactions"
