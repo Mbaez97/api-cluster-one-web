@@ -41,3 +41,6 @@ def execute_cluster_one(command: str, params: dict = None, file_name: str = None
         response = lee_csv("complex_cluster_response.csv")
         os.system("mv complex_cluster_response.csv /app/app/media/clusters/complex_cluster_response.csv")
     return response
+
+def save_user_ppi(file):
+    pass
