@@ -7,6 +7,7 @@ import random
 import json
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, UploadFile, File
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 # from app import crud
@@ -239,3 +240,26 @@ def get_run(
         # Delete file
         os.system(f"rm {file.filename}") 
     return _clusters
+
+@router.get("/{cluster_id}/csv")
+def get_csv(
+    db: Session = Depends(deps.get_db),
+    cluster_id: int = 0,
+):
+    """
+    Get Csv Cluster data
+    
+    """
+    cluster = crud.cluster_graph.get_cluster_by_id(db, id=cluster_id)
+    if not cluster:
+        raise HTTPException(status_code=404, detail="Cluster not found")
+    _csv_path = cluster.data
+    _csv_name = _csv_path.split("/")[-1]
+    # open file
+    buffer = open(_csv_path, "r")
+    # return csv
+    return StreamingResponse(
+        buffer, 
+        headers={"Content-Disposition": f"attachment; filename={_csv_name}.csv"},
+        media_type="text/csv", 
+    )
