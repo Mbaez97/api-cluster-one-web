@@ -4,8 +4,9 @@ from time import sleep
 from datetime import datetime
 from typing import Any, List
 import random
+import json
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy.orm import Session
 
 # from app import crud
@@ -30,31 +31,33 @@ def get_quickrun(
     db: Session = Depends(deps.get_db),
     pp_id: int = Query(None, description="PPI ID", gt=0),
     cant_clusters: int = Query(None, description="Number of clusters", gt=0),
+    file: UploadFile = File(None),
     # cluster_one_version: str = Query(None, description="ClusterOne Version", gt=0),
 ):
     """
     Get All Cluster data
     TODO: 
-        - Add a file upload
         - identify complex and create it in db, associate it with clusters
     """
-    _base_command = "java -jar cluster_one-1.0.jar"
-
     # if not cluster_one_version:
     #     _base_command = "java -jar cluster_one-1.0.jar"
     # else:
         # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
+    _base_command = "java -jar cluster_one-1.0.jar"
     _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
     _final_command = "> " + _file_name
+    if file:
+        # Save file in media
+        with open(f"{file.filename}", "wb") as buffer:
+            buffer.write(file.file.read())
+            buffer.close()             
+        _command = f"{_base_command} {file.filename} -F csv {_final_command}"
+        pp_id = None
     if pp_id:
         ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=pp_id)
         if not ppi_obj:
             raise HTTPException(status_code=404, detail="PPI not found")
         _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
-    else:
-        # TODO: User send txt in body and save it in a file
-        # And then run the command With the file
-        _command = f"{_base_command} {_final_command}"
     
     response = execute_cluster_one(_command, file_name=_file_name)
     _clusters = []
@@ -123,6 +126,9 @@ def get_quickrun(
             "nodes": _proteins_obj,
             "edges": _edges
         })
+    if file:
+        # Delete file
+        os.system(f"rm {file.filename}") 
     return _clusters
 
 @router.post("/run/")
@@ -131,31 +137,37 @@ def get_run(
     pp_id: int = Query(None, description="PPI ID", gt=0),
     cant_clusters: int = Query(None, description="Number of clusters", gt=0),
     body: Any = Body(...),
+    file: UploadFile = File(None),
     # cluster_one_version: str = Query(None, description="ClusterOne Version", gt=0),
 ):
     """
     Get All Cluster data
     TODO: 
         - Add a file upload
-        - identify complex and create it in db, associate it with clusters
     """
-    _base_command = "java -jar cluster_one-1.0.jar"
 
     # if not cluster_one_version:
     #     _base_command = "java -jar cluster_one-1.0.jar"
     # else:
         # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
+    _base_command = "java -jar cluster_one-1.0.jar"
     _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
     _final_command = "> " + _file_name
+    if file:
+        # Save file in media
+        with open(f"{file.filename}", "wb") as buffer:
+            buffer.write(file.file.read())
+            buffer.close()             
+        _command = f"{_base_command} {file.filename} -F csv {_final_command}"
+        pp_id = None
     if pp_id:
         ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=pp_id)
         if not ppi_obj:
             raise HTTPException(status_code=404, detail="PPI not found")
         _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
-    else:
-        # TODO: User send txt in body and save it in a file
-        # And then run the command With the file
-        _command = f"{_base_command} {_final_command}"
+    if type(body) == str:
+        body = json.loads(body)
+    breakpoint()
     response = execute_cluster_one(_command, file_name=_file_name, params=body)
     _clusters = []
     if cant_clusters:
@@ -223,4 +235,7 @@ def get_run(
             "nodes": _proteins_obj,
             "edges": _edges
         })
+    if file:
+        # Delete file
+        os.system(f"rm {file.filename}") 
     return _clusters
