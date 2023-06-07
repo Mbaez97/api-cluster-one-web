@@ -39,6 +39,11 @@ class PPIGraph(AbstractGraph):
 
 
 class ClusterGraph(AbstractGraph):
+    """
+    ClusterGraph model
+    I think this model represent all clusters detected by ClusterOne Algorithm. 
+    But is not clear because can be a protein complex.
+    """
     @declared_attr
     def __tablename__(cls) -> str:
         return "cluster_graph"
@@ -48,6 +53,7 @@ class ClusterGraph(AbstractGraph):
     external_weight = Column(Float, nullable=False)
     internal_weight = Column(Float, nullable=False)
     data = Column(String(255), nullable=True)
+    is_complex = Column(Boolean, nullable=True, default=False)
     # Definición de la relación muchos a muchos con la tabla "edges"
     edges = relationship(
         Edge,
