@@ -9,9 +9,6 @@ from sqlalchemy.ext.declarative import as_declarative, declared_attr
 class Base:
     id: Any
     __name__: str
-    # created_at = Column(DateTime, default=datetime.now)
-    # updated_at = Column(DateTime, onupdate=datetime.now)
-    # deleted_at = Column(DateTime, nullable=True)
 
     # Generate __tablename__ automatically
     @declared_attr
