@@ -8,11 +8,11 @@ def get_random_color():
     r1 = random.randint(0, 255)
     r2 = random.randint(0, 255)
     r3 = random.randint(0, 255)
-    return '#%02X%02X%02X' % (r1, r2, r3)
+    return "#%02X%02X%02X" % (r1, r2, r3)
 
 
 def get_complex_protein_color():
-    return '#%02X%02X%02X' % (255, 0, 0)
+    return "#%02X%02X%02X" % (255, 0, 0)
 
 
 def parse_cl1_csv_to_cy(cl1_file_path: str, cy_file_output_path: str):
@@ -25,8 +25,8 @@ def parse_cl1_csv_to_cy(cl1_file_path: str, cy_file_output_path: str):
     # Lee el archivo de CL1
     cl1 = lee_csv(cl1_file_path)
     # Crea el archivo de salida en formato JSON
-    cy = open(cy_file_output_path, 'w')
-    
+    cy = open(cy_file_output_path, "w")
+
     _net = []
 
     for row in cl1:
@@ -43,7 +43,7 @@ def parse_dataset_to_cy(dataset_file_path: str, cy_file_output_path: str):
     # Lee el archivo TXT
     dataset = lee_txt(dataset_file_path)
     # Crea el archivo de salida en formato JSON
-    cy = open(cy_file_output_path, 'w')
+    cy = open(cy_file_output_path, "w")
 
     _net = []
     _list_nodes = []
@@ -58,38 +58,24 @@ def parse_dataset_to_cy(dataset_file_path: str, cy_file_output_path: str):
             breakpoint()
 
         _origen_node = {
-            "data": {
-                "id": _origen,
-                "name": _origen,
-                "protein": "true"
-            },
-            "position": {
-                "x": random.randint(800, 1000),
-                "y": random.randint(0, 100)
-            },
+            "data": {"id": _origen, "name": _origen, "protein": "true"},
+            "position": {"x": random.randint(800, 1000), "y": random.randint(0, 100)},
             "selected": False,
             "selectable": True,
             "locked": False,
             "grabbable": True,
             "group": "nodes",
-            "classes": "fn10273 fn6931 fn9632 fn7950 fn9188 fn6944 fn9471 fn6284 fn9180 fn6956 fn6935 fn6219 fn8147 fn6939 fn7338 fn6936 fn6949 fn7952 fn6957 fn8786 fn6676 fn10713 fn7453 fn7451 fn10024 fn7456 fn7454 fn7469 fn7467 fn10022 fn7463 fn7464 fn6279 fn6278 fn8569 fn7641 fn8568"
+            "classes": "fn10273 fn6931 fn9632 fn7950 fn9188 fn6944 fn9471 fn6284 fn9180 fn6956 fn6935 fn6219 fn8147 fn6939 fn7338 fn6936 fn6949 fn7952 fn6957 fn8786 fn6676 fn10713 fn7453 fn7451 fn10024 fn7456 fn7454 fn7469 fn7467 fn10022 fn7463 fn7464 fn6279 fn6278 fn8569 fn7641 fn8568",
         }
         _destino_node = {
-            "data": {
-                "id": _destino,
-                "name": _destino,
-                "protein": "true"
-            },
-            "position": {
-                "x": random.randint(800, 1000),
-                "y": random.randint(0, 100)
-            },
+            "data": {"id": _destino, "name": _destino, "protein": "true"},
+            "position": {"x": random.randint(800, 1000), "y": random.randint(0, 100)},
             "selected": False,
             "selectable": True,
             "locked": False,
             "grabbable": True,
             "group": "nodes",
-            "classes": "fn7921"
+            "classes": "fn7921",
         }
         if _origen_node not in _list_nodes:
             _list_nodes.append(_origen_node)
@@ -102,7 +88,7 @@ def parse_dataset_to_cy(dataset_file_path: str, cy_file_output_path: str):
                 "target": _destino,
                 "weight": _peso,
                 "interaction": "pp",
-                "id": _origen + "_" + _destino
+                "id": _origen + "_" + _destino,
             },
             "position": {},
             "selected": False,
@@ -110,7 +96,7 @@ def parse_dataset_to_cy(dataset_file_path: str, cy_file_output_path: str):
             "locked": False,
             "grabbable": True,
             "group": "edges",
-            "classes": "pp"
+            "classes": "pp",
         }
         _edges.append(_edge)
 
@@ -121,7 +107,7 @@ def parse_dataset_to_cy(dataset_file_path: str, cy_file_output_path: str):
 
 def parse_cl1_txt_to_cy(cl1_file_path: str, cy_file_output_path: str):
     data = lee_txt(cl1_file_path)
-    cy = open(cy_file_output_path, 'w')
+    cy = open(cy_file_output_path, "w")
     _net = []
     _list_nodes = []
     _edges = []
@@ -129,14 +115,10 @@ def parse_cl1_txt_to_cy(cl1_file_path: str, cy_file_output_path: str):
         _row = row.split("\t")
         for _protein in _row:
             _protein_node = {
-                "data": {
-                    "id": _protein,
-                    "name": _protein,
-                    "protein": "true"
-                },
+                "data": {"id": _protein, "name": _protein, "protein": "true"},
                 "position": {
                     "x": random.randint(800, 1000),
-                    "y": random.randint(0, 100)
+                    "y": random.randint(0, 100),
                 },
                 "selected": False,
                 "selectable": True,
@@ -155,8 +137,8 @@ def parse_cl1_txt_to_cy(cl1_file_path: str, cy_file_output_path: str):
                     "text-outline-width": "2px",
                     "color": "#fff",
                     "overlay-padding": "6px",
-                    "z-index": "10"
-                }
+                    "z-index": "10",
+                },
             }
             if _protein_node not in _list_nodes:
                 _list_nodes.append(_protein_node)
@@ -175,7 +157,7 @@ def parse_cl1_txt_to_cy(cl1_file_path: str, cy_file_output_path: str):
                             "target": _protein2,
                             "weight": 1,
                             "interaction": "pp",
-                            "id": _protein + "_" + _protein2
+                            "id": _protein + "_" + _protein2,
                         },
                         "position": {},
                         "selected": False,
@@ -183,7 +165,7 @@ def parse_cl1_txt_to_cy(cl1_file_path: str, cy_file_output_path: str):
                         "locked": False,
                         "grabbable": True,
                         "group": "edges",
-                        "classes": "pp"
+                        "classes": "pp",
                     }
                     _edges.append(_edge)
 

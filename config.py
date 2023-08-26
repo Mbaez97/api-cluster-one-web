@@ -46,8 +46,8 @@ class Settings(BaseSettings):
             return v
         return PostgresDsn.build(
             scheme="postgresql",
-            user=values.get("POSTGRES_USER",'postgres'),
-            password=values.get("POSTGRES_PASSWORD", 'test'),
+            user=values.get("POSTGRES_USER", "postgres"),
+            password=values.get("POSTGRES_PASSWORD", "test"),
             host=f'{values.get("POSTGRES_HOST", "db")}:{values.get("POSTGRES_PORT", 5432)}',
             path=f"/{values.get('POSTGRES_DB') or 'db'}",
         )
@@ -65,7 +65,6 @@ class Settings(BaseSettings):
             return values["PROJECT_NAME"]
         return v
 
-    
     class Config:
         case_sensitive = True
 

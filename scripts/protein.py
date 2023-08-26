@@ -15,15 +15,17 @@ from config import Settings
 settings = Settings()
 print(settings.SQLALCHEMY_DATABASE_URI)
 
+
 def get_random_color():
     r1 = random.randint(0, 255)
     r2 = random.randint(0, 255)
     r3 = random.randint(0, 255)
-    return '#%02X%02X%02X' % (r1, r2, r3)
+    return "#%02X%02X%02X" % (r1, r2, r3)
 
 
 def get_complex_protein_color():
-    return '#%02X%02X%02X' % (255, 0, 0)
+    return "#%02X%02X%02X" % (255, 0, 0)
+
 
 def generate_random_styles():
     _style = {
@@ -38,14 +40,15 @@ def generate_random_styles():
         "text-outline-width": "2px",
         "color": "#fff",
         "overlay-padding": "6px",
-        "z-index": "10"
+        "z-index": "10",
     }
     return _style
 
+
 def crate_protein_by_ppi(file_path: str):
-    '''
+    """
     Crea los nodos de proteinas a partir de un archivo de PPI.
-    '''
+    """
     # Lee el archivo TXT
     dataset = lee_txt(file_path)
     _creados = []
@@ -53,7 +56,7 @@ def crate_protein_by_ppi(file_path: str):
     db = SessionLocal()
     for data in dataset:
         _data = data.split("\t")
-        _url = 'www.ebi.ac.uk/proteins/api/proteins/'
+        _url = "www.ebi.ac.uk/proteins/api/proteins/"
         # Crea el nodo de la proteina
         if _data[0] in _creados:
             continue
@@ -70,7 +73,7 @@ def crate_protein_by_ppi(file_path: str):
             description="Automatic node created from PPI file",
             score=0.0,
             url_info=_url + _data[0],
-            style=_style_objet
+            style=_style_objet,
         )
         db.add(protein_1)
         if _data[1] in _creados:
@@ -81,7 +84,7 @@ def crate_protein_by_ppi(file_path: str):
             description="Automatic node created from PPI file",
             score=0.0,
             url_info=_url + _data[1],
-            style=_style_objet
+            style=_style_objet,
         )
         db.add(protein_2)
         db.commit()
@@ -89,10 +92,11 @@ def crate_protein_by_ppi(file_path: str):
         print("Protein created: ", protein_2.name)
     db.close()
 
+
 def create_ppi(file_path: str):
     ppi_dataset = lee_csv(file_path)
     db = SessionLocal()
-    _get_random_layout = db.query(Layout).filter(Layout.name == 'random').first()
+    _get_random_layout = db.query(Layout).filter(Layout.name == "random").first()
     _ppi_objet = PPIGraph(
         name="PPI Biogrid Yeast Physical Unweighted",
         preloaded=True,
@@ -105,7 +109,9 @@ def create_ppi(file_path: str):
     for data in ppi_dataset:
         _data = data[0].split("\t")
         protein_1 = db.query(Protein).filter(Protein.name == _data[0]).first()
-        protein_2 = db.query(Protein).filter(Protein.name == _data[1].replace('\n','')).first()
+        protein_2 = (
+            db.query(Protein).filter(Protein.name == _data[1].replace("\n", "")).first()
+        )
         _edge_style = {
             "selected": False,
             "selectable": True,
@@ -132,24 +138,25 @@ def create_ppi(file_path: str):
         _ppi_objet.edge.append(_edge)
         db.commit()
 
+
 def crate_layouts():
     layouts = [
-        'cola',
-        'cose',
-        'cose-bilkent',
-        'dagre',
-        'fcose',
-        'grid',
-        'klay',
-        'spread',
-        'concentric',
-        'breadthfirst',
-        'circle',
-        'concentric',
-        'cose',
-        'grid',
-        'preset',
-        'random'
+        "cola",
+        "cose",
+        "cose-bilkent",
+        "dagre",
+        "fcose",
+        "grid",
+        "klay",
+        "spread",
+        "concentric",
+        "breadthfirst",
+        "circle",
+        "concentric",
+        "cose",
+        "grid",
+        "preset",
+        "random",
     ]
     db = SessionLocal()
     for layout in layouts:
@@ -162,6 +169,7 @@ def crate_layouts():
         )
         db.add(_layout)
         db.commit()
+
 
 create_ppi("ppi_biogrid_yeast_physical_unweighted.txt")
 # crate_layouts()

@@ -22,5 +22,6 @@ class ProteinCreate(ProteinBase):
     created_at: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     updated_at: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
+
 class ProteinResponse(BaseModel):
     proteins: List[ProteinBase]

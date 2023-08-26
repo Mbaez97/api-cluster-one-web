@@ -20,11 +20,30 @@ from app.models import Layout
 
 router = APIRouter()
 
+
 def get_default_uuid():
     return str(uuid4())
 
+
 def get_random_layout():
-    return random.choice(["force", "cose", "circle", "concentric", "grid", "breadthfirst", "cose-bilkent", "cola", "euler", "spread", "dagre", "klay", "random"])
+    return random.choice(
+        [
+            "force",
+            "cose",
+            "circle",
+            "concentric",
+            "grid",
+            "breadthfirst",
+            "cose-bilkent",
+            "cola",
+            "euler",
+            "spread",
+            "dagre",
+            "klay",
+            "random",
+        ]
+    )
+
 
 # ClusterOne API
 @router.post("/quickrun/")
@@ -37,13 +56,13 @@ def get_quickrun(
 ):
     """
     Get All Cluster data
-    TODO: 
+    TODO:
         - identify complex and create it in db, associate it with clusters
     """
     # if not cluster_one_version:
     #     _base_command = "java -jar cluster_one-1.0.jar"
     # else:
-        # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
+    # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
     _base_command = "java -jar cluster_one-1.0.jar"
     _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
     _final_command = "> " + _file_name
@@ -51,7 +70,7 @@ def get_quickrun(
         # Save file in media
         with open(f"{file.filename}", "wb") as buffer:
             buffer.write(file.file.read())
-            buffer.close()             
+            buffer.close()
         _command = f"{_base_command} {file.filename} -F csv {_final_command}"
         pp_id = None
     if pp_id:
@@ -59,7 +78,7 @@ def get_quickrun(
         if not ppi_obj:
             raise HTTPException(status_code=404, detail="PPI not found")
         _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
-    
+
     response = execute_cluster_one(_command, file_name=_file_name)
     _clusters = []
     if cant_clusters:
@@ -88,11 +107,11 @@ def get_quickrun(
                 "data": {
                     "id": _protein_obj.id,
                     "name": _protein_obj.name,
-                    "protein": "true"
+                    "protein": "true",
                 },
                 "position": {
                     "x": random.randint(800, 1000),
-                    "y": random.randint(0, 100)
+                    "y": random.randint(0, 100),
                 },
                 "selected": False,
                 "selectable": True,
@@ -111,7 +130,9 @@ def get_quickrun(
                             "target": _protein2["data"]["id"],
                             "weight": 1,
                             "interaction": "pp",
-                            "id": str(_protein["data"]["id"]) + "_" + str(_protein2["data"]["id"])
+                            "id": str(_protein["data"]["id"])
+                            + "_"
+                            + str(_protein2["data"]["id"]),
                         },
                         "position": {},
                         "selected": False,
@@ -119,18 +140,17 @@ def get_quickrun(
                         "locked": False,
                         "grabbable": True,
                         "group": "edges",
-                        "classes": "pp"
+                        "classes": "pp",
                     }
                     _edges.append(_edge)
-        _clusters.append({
-            "cluster_id": _cluster_obj.id,
-            "nodes": _proteins_obj,
-            "edges": _edges
-        })
+        _clusters.append(
+            {"cluster_id": _cluster_obj.id, "nodes": _proteins_obj, "edges": _edges}
+        )
     if file:
         # Delete file
-        os.system(f"rm {file.filename}") 
+        os.system(f"rm {file.filename}")
     return _clusters
+
 
 @router.post("/run/")
 def get_run(
@@ -143,14 +163,14 @@ def get_run(
 ):
     """
     Get All Cluster data
-    TODO: 
+    TODO:
         - Add a file upload
     """
 
     # if not cluster_one_version:
     #     _base_command = "java -jar cluster_one-1.0.jar"
     # else:
-        # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
+    # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
     _base_command = "java -jar cluster_one-1.0.jar"
     _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
     _final_command = "> " + _file_name
@@ -158,7 +178,7 @@ def get_run(
         # Save file in media
         with open(f"{file.filename}", "wb") as buffer:
             buffer.write(file.file.read())
-            buffer.close()             
+            buffer.close()
         _command = f"{_base_command} {file.filename} -F csv {_final_command}"
         pp_id = None
     if pp_id:
@@ -197,11 +217,11 @@ def get_run(
                 "data": {
                     "id": _protein_obj.id,
                     "name": _protein_obj.name,
-                    "protein": "true"
+                    "protein": "true",
                 },
                 "position": {
                     "x": random.randint(800, 1000),
-                    "y": random.randint(0, 100)
+                    "y": random.randint(0, 100),
                 },
                 "selected": False,
                 "selectable": True,
@@ -220,7 +240,9 @@ def get_run(
                             "target": _protein2["data"]["id"],
                             "weight": 1,
                             "interaction": "pp",
-                            "id": str(_protein["data"]["id"]) + "_" + str(_protein2["data"]["id"])
+                            "id": str(_protein["data"]["id"])
+                            + "_"
+                            + str(_protein2["data"]["id"]),
                         },
                         "position": {},
                         "selected": False,
@@ -228,18 +250,17 @@ def get_run(
                         "locked": False,
                         "grabbable": True,
                         "group": "edges",
-                        "classes": "pp"
+                        "classes": "pp",
                     }
                     _edges.append(_edge)
-        _clusters.append({
-            "cluster_id": _cluster_obj.id,
-            "nodes": _proteins_obj,
-            "edges": _edges
-        })
+        _clusters.append(
+            {"cluster_id": _cluster_obj.id, "nodes": _proteins_obj, "edges": _edges}
+        )
     if file:
         # Delete file
-        os.system(f"rm {file.filename}") 
+        os.system(f"rm {file.filename}")
     return _clusters
+
 
 @router.get("/{cluster_id}/csv")
 def get_csv(
@@ -248,7 +269,7 @@ def get_csv(
 ):
     """
     Get Csv Cluster data
-    
+
     """
     cluster = crud.cluster_graph.get_cluster_by_id(db, id=cluster_id)
     if not cluster:
@@ -259,7 +280,7 @@ def get_csv(
     buffer = open(_csv_path, "r")
     # return csv
     return StreamingResponse(
-        buffer, 
+        buffer,
         headers={"Content-Disposition": f"attachment; filename={_csv_name}.csv"},
-        media_type="text/csv", 
+        media_type="text/csv",
     )

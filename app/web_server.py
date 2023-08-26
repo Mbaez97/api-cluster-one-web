@@ -46,7 +46,4 @@ async def test_root():
     return {"Hello": "current_user.full_name"}
 
 
-# app.include_router(router_v2_dashboard, prefix="/v2/dashboard", tags=["v2_dashboard"])
-app.include_router(
-    api_router, prefix="/v1/api", tags=["api_v1"]
-)
+app.include_router(api_router, prefix="/v1/api", tags=["api_v1"])

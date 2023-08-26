@@ -2,14 +2,17 @@ import random
 import os
 from libs.lib_manejo_csv import lee_csv
 
+
 def get_random_color():
     r1 = random.randint(0, 255)
     r2 = random.randint(0, 255)
     r3 = random.randint(0, 255)
-    return '#%02X%02X%02X' % (r1, r2, r3)
+    return "#%02X%02X%02X" % (r1, r2, r3)
+
 
 def get_complex_protein_color():
-    return '#%02X%02X%02X' % (255, 0, 0)
+    return "#%02X%02X%02X" % (255, 0, 0)
+
 
 def generate_random_styles():
     _style = {
@@ -24,9 +27,10 @@ def generate_random_styles():
         "text-outline-width": "2px",
         "color": "#fff",
         "overlay-padding": "6px",
-        "z-index": "10"
+        "z-index": "10",
     }
     return _style
+
 
 def execute_cluster_one(command: str, params: dict = None, file_name: str = None):
     if params:
@@ -39,8 +43,11 @@ def execute_cluster_one(command: str, params: dict = None, file_name: str = None
         return response
     else:
         response = lee_csv("complex_cluster_response.csv")
-        os.system("mv complex_cluster_response.csv /app/app/media/clusters/complex_cluster_response.csv")
+        os.system(
+            "mv complex_cluster_response.csv /app/app/media/clusters/complex_cluster_response.csv"
+        )
     return response
+
 
 def save_user_ppi(file):
     pass

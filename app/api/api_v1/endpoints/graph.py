@@ -31,6 +31,7 @@ def get_ppi_graph(
     breakpoint()
     return graph
 
+
 @router.get("/cluster/", response_model=ORJSONResponse)
 def get_cluster_graph(
     db: Session = Depends(deps.get_db),

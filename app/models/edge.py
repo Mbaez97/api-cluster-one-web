@@ -31,5 +31,9 @@ class Edge(BaseWithDatetime):
     direction = Column(Integer, nullable=False, default=0)
     style_id = Column(Integer, ForeignKey("style.id"), nullable=False)
     style = relationship(Style, back_populates="edge")
-    ppi_interactions = relationship("PPIGraph", secondary="edge_ppi_interaction" ,back_populates="edge")
-    cluster_interactions = relationship("ClusterGraph", secondary="edge_cluster_interaction" ,back_populates="edges")
+    ppi_interactions = relationship(
+        "PPIGraph", secondary="edge_ppi_interaction", back_populates="edge"
+    )
+    cluster_interactions = relationship(
+        "ClusterGraph", secondary="edge_cluster_interaction", back_populates="edges"
+    )

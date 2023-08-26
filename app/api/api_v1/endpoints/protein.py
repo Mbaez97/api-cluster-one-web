@@ -47,4 +47,3 @@ def get_protein_data(
         raise HTTPException(status_code=404, detail="Protein not found")
     response = ProteinBase(**protein.__dict__)
     return response
-
