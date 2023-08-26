@@ -42,7 +42,7 @@ def generate_random_styles():
 
 
 def create_ppi(file_path: str):
-    ppi_dataset = lee_csv(file_path)
+    ppi_dataset = lee_txt(file_path, delimiter="\t")
     db = SessionLocal()
     _get_random_layout = db.query(Layout).filter(Layout.name == "random").first()
     _ppi_objet = PPIGraph(
@@ -55,7 +55,7 @@ def create_ppi(file_path: str):
     db.add(_ppi_objet)
     db.commit()
     for data in ppi_dataset:
-        _data = data[0].split("\t")
+        _data = data.split("\t")
         protein_1 = db.query(Protein).filter(Protein.name == _data[0]).first()
         protein_2 = (
             db.query(Protein).filter(Protein.name == _data[1].replace("\n", "")).first()
@@ -119,5 +119,5 @@ def crate_layouts():
         db.commit()
 
 
-create_ppi("ppi_biogrid_yeast_physical_unweighted.txt")
-# crate_layouts()
+crate_layouts()
+create_ppi("./example/collins2007.txt")
