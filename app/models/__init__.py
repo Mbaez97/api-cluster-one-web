@@ -8,4 +8,5 @@ from .graph import AbstractGraph, ClusterGraph, PPIGraph
 from .layout import Layout
 from .protein import Protein
 from .style import Style
+
 # from .go_terms import GoTerm

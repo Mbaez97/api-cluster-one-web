@@ -28,7 +28,7 @@ class PPIGraph(AbstractGraph):
     def __tablename__(cls) -> str:
         return "ppi_graph"
 
-    id = Column(Integer, ForeignKey('graph.id') , primary_key=True, index=True)
+    id = Column(Integer, ForeignKey("graph.id"), primary_key=True, index=True)
     name = Column(String(255), nullable=False)
     preloaded = Column(Boolean, nullable=False, default=False)
     data = Column(String(255), nullable=True)
@@ -41,14 +41,15 @@ class PPIGraph(AbstractGraph):
 class ClusterGraph(AbstractGraph):
     """
     ClusterGraph model
-    I think this model represent all clusters detected by ClusterOne Algorithm. 
+    I think this model represent all clusters detected by ClusterOne Algorithm.
     But is not clear because can be a protein complex.
     """
+
     @declared_attr
     def __tablename__(cls) -> str:
         return "cluster_graph"
 
-    id = Column(Integer, ForeignKey('graph.id') , primary_key=True, index=True)
+    id = Column(Integer, ForeignKey("graph.id"), primary_key=True, index=True)
     quality = Column(Float, nullable=False)
     external_weight = Column(Float, nullable=False)
     internal_weight = Column(Float, nullable=False)
@@ -61,7 +62,7 @@ class ClusterGraph(AbstractGraph):
         back_populates="cluster_interactions",
     )
     protein_complexes = relationship(
-        Complex, 
+        Complex,
         secondary="complex_cluster_one_interaction",
-        back_populates="cluster_graphs"
+        back_populates="cluster_graphs",
     )

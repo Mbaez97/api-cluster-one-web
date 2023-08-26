@@ -15,11 +15,13 @@ from config import Settings
 settings = Settings()
 print(settings.SQLALCHEMY_DATABASE_URI)
 
+
 def get_random_color():
     r1 = random.randint(0, 255)
     r2 = random.randint(0, 255)
     r3 = random.randint(0, 255)
-    return '#%02X%02X%02X' % (r1, r2, r3)
+    return "#%02X%02X%02X" % (r1, r2, r3)
+
 
 def generate_random_styles():
     _style = {
@@ -34,14 +36,15 @@ def generate_random_styles():
         "text-outline-width": "2px",
         "color": "#fff",
         "overlay-padding": "6px",
-        "z-index": "10"
+        "z-index": "10",
     }
     return _style
+
 
 def create_ppi(file_path: str):
     ppi_dataset = lee_csv(file_path)
     db = SessionLocal()
-    _get_random_layout = db.query(Layout).filter(Layout.name == 'random').first()
+    _get_random_layout = db.query(Layout).filter(Layout.name == "random").first()
     _ppi_objet = PPIGraph(
         name="PPI Biogrid Yeast Physical Unweighted",
         preloaded=True,
@@ -54,7 +57,9 @@ def create_ppi(file_path: str):
     for data in ppi_dataset:
         _data = data[0].split("\t")
         protein_1 = db.query(Protein).filter(Protein.name == _data[0]).first()
-        protein_2 = db.query(Protein).filter(Protein.name == _data[1].replace('\n','')).first()
+        protein_2 = (
+            db.query(Protein).filter(Protein.name == _data[1].replace("\n", "")).first()
+        )
         _edge_style = {
             "selected": False,
             "selectable": True,
@@ -81,24 +86,25 @@ def create_ppi(file_path: str):
         _ppi_objet.edge.append(_edge)
         db.commit()
 
+
 def crate_layouts():
     layouts = [
-        'cola',
-        'cose',
-        'cose-bilkent',
-        'dagre',
-        'fcose',
-        'grid',
-        'klay',
-        'spread',
-        'concentric',
-        'breadthfirst',
-        'circle',
-        'concentric',
-        'cose',
-        'grid',
-        'preset',
-        'random'
+        "cola",
+        "cose",
+        "cose-bilkent",
+        "dagre",
+        "fcose",
+        "grid",
+        "klay",
+        "spread",
+        "concentric",
+        "breadthfirst",
+        "circle",
+        "concentric",
+        "cose",
+        "grid",
+        "preset",
+        "random",
     ]
     db = SessionLocal()
     for layout in layouts:
@@ -111,6 +117,7 @@ def crate_layouts():
         )
         db.add(_layout)
         db.commit()
+
 
 create_ppi("ppi_biogrid_yeast_physical_unweighted.txt")
 # crate_layouts()
