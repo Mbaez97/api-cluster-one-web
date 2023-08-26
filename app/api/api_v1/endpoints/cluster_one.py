@@ -78,7 +78,6 @@ def get_quickrun(
         if not ppi_obj:
             raise HTTPException(status_code=404, detail="PPI not found")
         _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
-
     response = execute_cluster_one(_command, file_name=_file_name)
     _clusters = []
     if cant_clusters:
