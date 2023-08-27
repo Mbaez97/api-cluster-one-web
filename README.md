@@ -2,13 +2,16 @@
 
 Fast API to serve the algorithm of clustering "ClusterOne"
 
+## Dependencies 📦
+
+    - Docker
+    - Docker Compose
+    - Clone the repository
+
 ## Installation 🖥️
 
-    - Install Docker
-    - Install Docker Compose
-    - Clone the repository
     - Run the command: docker-compose build
-    - Run the command: docker-compose run --rm web_server alembic upgrade head
+    - Run the command: docker-compose run --rm web_server migrate.sh
     - Run the command: docker-compose up
 
 ## Pre-Loaded Data (Optional) 🐳
@@ -21,7 +24,7 @@ Fast API to serve the algorithm of clustering "ClusterOne"
     - Run the command: python3 scripts/protein.py
     - Run the command: python3 scripts/ppi_graph.py
 
-## Usage
+## Usage 🚀
 
         - Open the browser and go to the address: http://localhost:8000/docs
         - Click on the button "Try it out"
