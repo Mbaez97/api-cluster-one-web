@@ -46,126 +46,16 @@ def get_random_layout():
 
 
 # ClusterOne API
-@router.post("/quickrun/")
-def get_quickrun(
-    db: Session = Depends(deps.get_db),
-    pp_id: int = Query(None, description="PPI ID", gt=0),
-    cant_clusters: int = Query(None, description="Number of clusters", gt=0),
-    file: UploadFile = File(None),
-    # cluster_one_version: str = Query(None, description="ClusterOne Version", gt=0),
-):
-    """
-    Get All Cluster data
-    TODO:
-        - identify complex and create it in db, associate it with clusters
-    """
-    # if not cluster_one_version:
-    #     _base_command = "java -jar cluster_one-1.0.jar"
-    # else:
-    # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
-    _base_command = "java -jar cluster_one-1.0.jar"
-    _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
-    _final_command = "> " + _file_name
-    if file:
-        # Save file in media
-        with open(f"{file.filename}", "wb") as buffer:
-            buffer.write(file.file.read())
-            buffer.close()
-        _command = f"{_base_command} {file.filename} -F csv {_final_command}"
-        pp_id = None
-    if pp_id:
-        ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=pp_id)
-        if not ppi_obj:
-            raise HTTPException(status_code=404, detail="PPI not found")
-        _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
-    response = execute_cluster_one(_command, file_name=_file_name)
-    _clusters = []
-    if cant_clusters:
-        response = response[:cant_clusters]
-    for complex in response:
-        _layout = db.query(Layout).filter(Layout.name == "random").first()
-        _obj = {
-            "external_weight": complex[4],
-            "internal_weight": complex[3],
-            "density": complex[2],
-            "size": complex[1],
-            "quality": complex[5],
-            "layout": _layout,
-            "data": "/app/app/media/clusters/" + _file_name,
-        }
-        _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
-        _proteins_obj = []
-        _edges = []
-        _proteins = complex[7].split(" ")
-        for protein in _proteins:
-            _protein_obj = crud.protein.get_by_name(db, name=protein)
-            if not _protein_obj:
-                # Create Protein in db
-                _protein_obj = crud.protein.quick_creation(db, name=protein)
-            _protein_node = {
-                "data": {
-                    "id": _protein_obj.id,
-                    "name": _protein_obj.name,
-                    "protein": "true",
-                },
-                "position": {
-                    "x": random.randint(800, 1000),
-                    "y": random.randint(0, 100),
-                },
-                "selected": False,
-                "selectable": True,
-                "locked": False,
-                "grabbable": True,
-                "group": "nodes",
-                "style": _protein_obj.style.ccs_styles,
-            }
-            _proteins_obj.append(_protein_node)
-        for _protein in _proteins_obj:
-            for _protein2 in _proteins_obj:
-                if _protein["data"]["id"] != _protein2["data"]["id"]:
-                    _edge = {
-                        "data": {
-                            "source": _protein["data"]["id"],
-                            "target": _protein2["data"]["id"],
-                            "weight": 1,
-                            "interaction": "pp",
-                            "id": str(_protein["data"]["id"])
-                            + "_"
-                            + str(_protein2["data"]["id"]),
-                        },
-                        "position": {},
-                        "selected": False,
-                        "selectable": True,
-                        "locked": False,
-                        "grabbable": True,
-                        "group": "edges",
-                        "classes": "pp",
-                    }
-                    _edges.append(_edge)
-        _clusters.append(
-            {"cluster_id": _cluster_obj.id, "nodes": _proteins_obj, "edges": _edges}
-        )
-    if file:
-        # Delete file
-        os.system(f"rm {file.filename}")
-    return _clusters
-
-
 @router.post("/run/")
-def get_run(
+def run_cluester_one(
     db: Session = Depends(deps.get_db),
     pp_id: int = Query(None, description="PPI ID", gt=0),
-    cant_clusters: int = Query(None, description="Number of clusters", gt=0),
-    body: Any = Body(...),
-    file: UploadFile = File(None),
-    # cluster_one_version: str = Query(None, description="ClusterOne Version", gt=0),
+    size: int = Query(None, description="Size of clusters", gt=0),
+    density: float = Query(None, description="Density of clusters", gt=0),
 ):
     """
-    Get All Cluster data
-    TODO:
-        - Add a file upload
+    Get All Cluster data from ClusterOne
     """
-
     # if not cluster_one_version:
     #     _base_command = "java -jar cluster_one-1.0.jar"
     # else:
@@ -173,25 +63,18 @@ def get_run(
     _base_command = "java -jar cluster_one-1.0.jar"
     _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
     _final_command = "> " + _file_name
-    if file:
-        # Save file in media
-        with open(f"{file.filename}", "wb") as buffer:
-            buffer.write(file.file.read())
-            buffer.close()
-        _command = f"{_base_command} {file.filename} -F csv {_final_command}"
-        pp_id = None
-    if pp_id:
-        ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=pp_id)
-        if not ppi_obj:
-            raise HTTPException(status_code=404, detail="PPI not found")
-        _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
-    if type(body) == str:
-        body = json.loads(body)
-    breakpoint()
-    response = execute_cluster_one(_command, file_name=_file_name, params=body)
+    if not pp_id:
+        raise HTTPException(status_code=404, detail="PPI not found")
+    ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=pp_id)
+    if not ppi_obj:
+        raise HTTPException(status_code=404, detail="PPI not found")
+    _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
+    if size:
+        _command = _command + f" -s {size}"
+    if density:
+        _command = _command + f" -d {density}"
+    response = execute_cluster_one(_command, file_name=_file_name, params=None)
     _clusters = []
-    if cant_clusters:
-        response = response[:cant_clusters]
     for complex in response:
         _layout = db.query(Layout).filter(Layout.name == "random").first()
         _obj = {
@@ -253,11 +136,17 @@ def get_run(
                     }
                     _edges.append(_edge)
         _clusters.append(
-            {"cluster_id": _cluster_obj.id, "nodes": _proteins_obj, "edges": _edges}
+            {
+                "code": str(_cluster_obj.id),
+                "size": _cluster_obj.size,
+                "density": _cluster_obj.density,
+                "internal_weight": _cluster_obj.internal_weight,
+                "external_weight": _cluster_obj.external_weight,
+                "quantity": _cluster_obj.quality,
+                "nodes": _proteins_obj,
+                "edges": _edges,
+            }
         )
-    if file:
-        # Delete file
-        os.system(f"rm {file.filename}")
     return _clusters
 
 
