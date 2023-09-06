@@ -98,19 +98,9 @@ def run_cluester_one(
             _protein_node = {
                 "data": {
                     "id": _protein_obj.id,
-                    "name": _protein_obj.name,
-                    "protein": "true",
+                    "label": _protein_obj.name,
+                    "type": "protein",
                 },
-                "position": {
-                    "x": random.randint(800, 1000),
-                    "y": random.randint(0, 100),
-                },
-                "selected": False,
-                "selectable": True,
-                "locked": False,
-                "grabbable": True,
-                "group": "nodes",
-                "style": _protein_obj.style.ccs_styles,
             }
             _proteins_obj.append(_protein_node)
         for _protein in _proteins_obj:
@@ -120,19 +110,8 @@ def run_cluester_one(
                         "data": {
                             "source": _protein["data"]["id"],
                             "target": _protein2["data"]["id"],
-                            "weight": 1,
-                            "interaction": "pp",
-                            "id": str(_protein["data"]["id"])
-                            + "_"
-                            + str(_protein2["data"]["id"]),
+                            "label": "",
                         },
-                        "position": {},
-                        "selected": False,
-                        "selectable": True,
-                        "locked": False,
-                        "grabbable": True,
-                        "group": "edges",
-                        "classes": "pp",
                     }
                     _edges.append(_edge)
         _clusters.append(
