@@ -16,6 +16,10 @@ class CRUDPPIGraph(CRUDBase[PPIGraph, schemas.GraphCreate, schemas.GraphUpdate])
         """Get ppi by id"""
         return db.query(PPIGraph).filter(PPIGraph.id == id).first()
 
+    def get_ppi_by_name(self, db, *, name: str) -> PPIGraph:
+        """Get ppi by name"""
+        return db.query(PPIGraph).filter(PPIGraph.name == name).first()
+
     def create_ppi_from_file(self, db, *, obj: dict) -> PPIGraph:
         """Create ppi from file"""
         db_obj = PPIGraph(
