@@ -1,6 +1,4 @@
 # from .cluster_one_logs import ClusterOneLogs
-# from .cluster_one_params import ClusterOneParams
-from .complex_cluster_interaction import ComplexClusterOneIteraction  # noqa
 from .edge_cluster_interaction import EdgeClusterInteraction  # noqa
 from .edge_ppi_interaction import EdgePPIInteraction  # noqa
 from .edge import Edge  # noqa

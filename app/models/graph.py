@@ -6,9 +6,7 @@ from sqlalchemy.orm import relationship
 
 # Models
 from app.db.base_class import BaseWithDatetime
-from app.models.edge import Edge
 from app.models.layout import Layout
-from app.models.protein import Complex
 
 
 class AbstractGraph(BaseWithDatetime):
@@ -34,7 +32,7 @@ class PPIGraph(AbstractGraph):
     data = Column(String(255), nullable=True)
     # Definición de la relación muchos a muchos con la tabla "edges"
     edge = relationship(
-        Edge, secondary="edge_ppi_interaction", back_populates="ppi_interactions"
+        "Edge", secondary="edge_ppi_interaction", back_populates="ppi_interactions"
     )
 
 
@@ -42,7 +40,7 @@ class ClusterGraph(AbstractGraph):
     """
     ClusterGraph model
     I think this model represent all clusters detected by ClusterOne Algorithm.
-    But is not clear because can be a protein complex.
+    This is the complex man.
     """
 
     @declared_attr
@@ -57,12 +55,11 @@ class ClusterGraph(AbstractGraph):
     is_complex = Column(Boolean, nullable=True, default=False)
     # Definición de la relación muchos a muchos con la tabla "edges"
     edges = relationship(
-        Edge,
+        "Edge",
         secondary="edge_cluster_interaction",
         back_populates="cluster_interactions",
     )
     protein_complexes = relationship(
-        Complex,
-        secondary="complex_cluster_one_interaction",
-        back_populates="cluster_graphs",
+        "ProteinComplex",
+        back_populates="cluster_graph",
     )
