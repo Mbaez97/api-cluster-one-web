@@ -2,15 +2,13 @@
 
 from app import schemas
 from app.crud.crud_base import CRUDBase
-from app.models import Protein, Style
-from app.api.utils import (
-    get_random_color,
-    get_complex_protein_color,
-    generate_random_styles,
-)
+from app.models import Protein, ClusterGraph
+from typing import List
 
 
-class CRUDProtein(CRUDBase[Protein, schemas.ProteinCreate, schemas.ProteinUpdate]):
+class CRUDProtein(
+    CRUDBase[Protein, schemas.ProteinCreate, schemas.ProteinUpdate]
+):  # noqa
     def get_all(self, db) -> Protein:
         """Get all protein"""
         return db.query(Protein).all()
@@ -26,24 +24,32 @@ class CRUDProtein(CRUDBase[Protein, schemas.ProteinCreate, schemas.ProteinUpdate
     def quick_creation(self, db, *, name: str) -> Protein:
         _data = name
         _url = "www.ebi.ac.uk/proteins/api/proteins/"
-        _style = generate_random_styles()
-        _style_objet = Style(
-            ccs_styles=_style,
-            type=0,
-        )
-        db.add(_style_objet)
 
         protein_1 = Protein(
             name=_data,
             description="Automatic node created from PPI file",
             score=0.0,
             url_info=_url + _data,
-            style=_style_objet,
         )
         db.add(protein_1)
         db.commit()
         print("Protein created: ", protein_1.name)
         return protein_1
+
+    def get_by_cluster(self, db, *, cluster_id: int) -> List[Protein]:
+        """Get protein by cluster id"""
+        _cluster = db.query(ClusterGraph).filter(ClusterGraph.id == cluster_id).first()
+        _edges = _cluster.edges
+        _proteins_a_id = [i.protein_a_id for i in _edges]
+        _proteins_b_id = [i.protein_b_id for i in _edges]
+        _proteins_id = []
+        for i in _proteins_a_id:
+            if i not in _proteins_id:
+                _proteins_id.append(i)
+        for i in _proteins_b_id:
+            if i not in _proteins_id:
+                _proteins_id.append(i)
+        return db.query(Protein).filter(Protein.id.in_(_proteins_id)).all()
 
 
 protein = CRUDProtein(Protein)
