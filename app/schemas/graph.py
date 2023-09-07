@@ -19,7 +19,6 @@ class GraphBase(BaseModel):
     size: Optional[int]
     density: Optional[float]
     score: Optional[float]
-    style_id: Optional[int]
     layout_id: Optional[int]
 
 

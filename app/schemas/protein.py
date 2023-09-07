@@ -7,11 +7,11 @@ from pydantic import BaseModel
 
 
 class ProteinBase(BaseModel):
+    id: Optional[int]
     name: Optional[str]
     description: Optional[str]
     url_info: Optional[str]
     score: Optional[float]
-    style_id: Optional[int]
 
 
 class ProteinUpdate(ProteinBase):
