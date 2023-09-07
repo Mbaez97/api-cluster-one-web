@@ -53,11 +53,8 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
                         "cluster_graph_id": cluster_id,
                     }
                 )
-            data_interactions = db.bulk_insert_mappings(
-                EdgeClusterInteraction, _interactions
-            )
+            db.bulk_insert_mappings(EdgeClusterInteraction, _interactions)
             db.commit()
-            db.refresh(data_interactions)
             return True
         except Exception as e:
             print(e)
@@ -88,11 +85,8 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
                         "cluster_graph_id": cluster_id,
                     }
                 )
-            data_interactions = db.bulk_insert_mappings(
-                EdgeClusterInteraction, _interactions
-            )
+            db.bulk_insert_mappings(EdgeClusterInteraction, _interactions)
             db.commit()
-            db.refresh(data_interactions)
             return True
         except Exception as e:
             print(e)

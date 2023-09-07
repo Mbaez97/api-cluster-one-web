@@ -1,12 +1,10 @@
 """Assigns Raspadita box, libro and cartones"""
-import os
-from time import sleep
-from datetime import datetime
-from typing import Any, List
-import random
-import json
+import time
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, UploadFile, File
+import random
+
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -60,6 +58,7 @@ def run_cluester_one(
     #     _base_command = "java -jar cluster_one-1.0.jar"
     # else:
     # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
+    start_time = time.time()
     _base_command = "java -jar cluster_one-1.0.jar"
     _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
     _final_command = "> " + _file_name
@@ -74,6 +73,7 @@ def run_cluester_one(
     if density:
         _command = _command + f" -d {density}"
     response = execute_cluster_one(_command, file_name=_file_name)
+    cluster_one_execution_time = time.time()
     _clusters = []
     for complex in response:
         _layout = db.query(Layout).filter(Layout.name == "random").first()
@@ -102,7 +102,6 @@ def run_cluester_one(
                 },
             }
             _proteins_obj.append(_protein_node)
-        print("LOGS: Agrupando los edges")
         _edges_to_create_in_cluster = []
         _edges_to_add_in_cluster = []
         for _protein in _proteins_obj:
@@ -133,7 +132,6 @@ def run_cluester_one(
                         )
                     else:
                         _edges_to_add_in_cluster.append(_edge_obj)
-        print("LOGS: Agregando el cluster a la lista de clusters")
         _clusters.append(
             {
                 "code": str(_cluster_obj.id),
@@ -146,7 +144,6 @@ def run_cluester_one(
                 "edges": _edges,
             }
         )
-        print("LOGS: Creando los edges")
         if _edges_to_create_in_cluster:
             crud.edge.bulk_create_edge_for_cluster(
                 db,
@@ -154,7 +151,6 @@ def run_cluester_one(
                 edge_list=_edges_to_create_in_cluster,
                 cluster_id=_cluster_obj.id,
             )
-        print("LOGS: Agregando los edges")
         if _edges_to_add_in_cluster:
             crud.edge.bulk_add_edge_to_cluster(
                 db,
@@ -163,6 +159,11 @@ def run_cluester_one(
                 cluster_id=_cluster_obj.id,
             )
     print("DONE!")
+    end_time = time.time()
+    print(
+        f"ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"
+    )
+    print(f"Total Execution Time: {(end_time - start_time):.4f} seconds")
     return _clusters
 
 
