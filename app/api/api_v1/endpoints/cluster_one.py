@@ -73,7 +73,7 @@ def run_cluester_one(
         _command = _command + f" -s {size}"
     if density:
         _command = _command + f" -d {density}"
-    response = execute_cluster_one(_command, file_name=_file_name, params=None)
+    response = execute_cluster_one(_command, file_name=_file_name)
     _clusters = []
     for complex in response:
         _layout = db.query(Layout).filter(Layout.name == "random").first()
@@ -91,7 +91,6 @@ def run_cluester_one(
         _proteins_obj = []
         _edges = []
         _proteins = complex[7].split(" ")
-        print("LOGS: Generando los nodos, creandolos o agregandolos al cluster")
         for protein in _proteins:
             _protein_obj = crud.protein.get_by_name(db, name=protein)
             if not _protein_obj:
