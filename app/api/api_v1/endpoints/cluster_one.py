@@ -86,10 +86,12 @@ def run_cluester_one(
             "layout": _layout,
             "data": "/app/app/media/clusters/" + _file_name,
         }
+        print("LOGS: Creando el cluster")
         _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
         _proteins_obj = []
         _edges = []
         _proteins = complex[7].split(" ")
+        print("LOGS: Generando los nodos, creandolos o agregandolos al cluster")
         for protein in _proteins:
             _protein_obj = crud.protein.get_by_name(db, name=protein)
             if not _protein_obj:
@@ -103,6 +105,7 @@ def run_cluester_one(
                 },
             }
             _proteins_obj.append(_protein_node)
+        print("LOGS: Generando los edges, creandolos o agregandolos al cluster")
         for _protein in _proteins_obj:
             for _protein2 in _proteins_obj:
                 if _protein["data"]["id"] != _protein2["data"]["id"]:
@@ -110,10 +113,36 @@ def run_cluester_one(
                         "data": {
                             "source": _protein["data"]["id"],
                             "target": _protein2["data"]["id"],
-                            "label": "",
+                            "label": "1",
                         },
                     }
                     _edges.append(_edge)
+                    _edge_obj = crud.edge.get_by_proteins(
+                        db,
+                        protein_a_id=_protein["data"]["id"],
+                        protein_b_id=_protein2["data"]["id"],
+                    )
+                    if not _edge_obj:
+                        crud.edge.create_edge_for_cluster(
+                            db,
+                            obj={
+                                "protein_a_id": _protein["data"]["id"],
+                                "protein_b_id": _protein2["data"]["id"],
+                                "weight": 1,
+                                "has_direction": False,
+                                "direction": 0,
+                                "refers_to": _cluster_obj,
+                            },
+                        )
+                    else:
+                        crud.edge.add_edge_to_cluster(
+                            db,
+                            obj={
+                                "id": _edge_obj.id,
+                                "refers_to": _cluster_obj,
+                            },
+                        )
+        print("LOGS: Agregando el cluster a la lista de clusters")
         _clusters.append(
             {
                 "code": str(_cluster_obj.id),
@@ -126,6 +155,7 @@ def run_cluester_one(
                 "edges": _edges,
             }
         )
+    print("DONE!")
     return _clusters
 
 
