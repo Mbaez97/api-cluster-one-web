@@ -6,7 +6,6 @@ from sqlalchemy.orm import relationship
 
 from app.db.base_class import BaseWithDatetime
 from app.models.protein import Protein
-from app.models.style import Style
 
 
 class Edge(BaseWithDatetime):
@@ -29,8 +28,6 @@ class Edge(BaseWithDatetime):
     weight = Column(Float, nullable=False)
     has_direction = Column(Boolean, nullable=False, default=False)
     direction = Column(Integer, nullable=False, default=0)
-    style_id = Column(Integer, ForeignKey("style.id"), nullable=False)
-    style = relationship(Style, back_populates="edge")
     ppi_interactions = relationship(
         "PPIGraph", secondary="edge_ppi_interaction", back_populates="edge"
     )
