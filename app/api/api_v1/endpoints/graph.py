@@ -15,7 +15,7 @@ router = APIRouter()
 
 # POST
 @router.post("/ppi/")
-def create_ppi_graph_from_file(
+def get_or_create_ppi_graph_from_file(
     db: Session = Depends(deps.get_db),
     file: UploadFile = File(None),
 ):
@@ -40,15 +40,27 @@ def create_ppi_graph_from_file(
             "name": file.filename,
             "preloaded": False,
         }
-        _new_ppi = crud.ppi_graph.create_ppi_from_file(db, obj=_data)
+        _ppi_obj = crud.ppi_graph.get_ppi_by_name(db, name=file.filename)
+        if not _ppi_obj:
+            _new_ppi = crud.ppi_graph.create_ppi_from_file(db, obj=_data)
+            response = {
+                "id": _new_ppi.id,
+                "name": _new_ppi.name,
+                "data": _new_ppi.data,
+                "density": _new_ppi.density,
+                "size": _new_ppi.size,
+                "preloaded": _new_ppi.preloaded,
+            }
+            return response
         response = {
-            "id": _new_ppi.id,
-            "name": _new_ppi.name,
-            "data": _new_ppi.data,
-            "density": _new_ppi.density,
-            "size": _new_ppi.size,
-            "preloaded": _new_ppi.preloaded,
+            "id": _ppi_obj.id,
+            "name": _ppi_obj.name,
+            "data": _ppi_obj.data,
+            "density": _ppi_obj.density,
+            "size": _ppi_obj.size,
+            "preloaded": _ppi_obj.preloaded,
         }
+        print("LOGS: PPI already exists")
         return response
     else:
         raise HTTPException(status_code=404, detail="File not found")
