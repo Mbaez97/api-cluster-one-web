@@ -14,27 +14,7 @@ def get_complex_protein_color():
     return "#%02X%02X%02X" % (255, 0, 0)
 
 
-def generate_random_styles():
-    _style = {
-        "width": "mapData(score, 0, 0.006769776522008331, 20, 60)",
-        "height": "mapData(score, 0, 0.006769776522008331, 20, 60)",
-        "content": "data(name)",
-        "font-size": "12px",
-        "text-valign": "center",
-        "text-halign": "center",
-        "background-color": get_random_color(),
-        "text-outline-color": "#555",
-        "text-outline-width": "2px",
-        "color": "#fff",
-        "overlay-padding": "6px",
-        "z-index": "10",
-    }
-    return _style
-
-
-def execute_cluster_one(command: str, params: dict = None, file_name: str = None):
-    if params:
-        command = command + " " + " ".join([f"{k} {v}" for k, v in params.items()])
+def execute_cluster_one(command: str, file_name: str = None):
     print(command)
     os.system(command)
     if file_name:
@@ -47,7 +27,3 @@ def execute_cluster_one(command: str, params: dict = None, file_name: str = None
             "mv complex_cluster_response.csv /app/app/media/clusters/complex_cluster_response.csv"
         )
     return response
-
-
-def save_user_ppi(file):
-    pass
