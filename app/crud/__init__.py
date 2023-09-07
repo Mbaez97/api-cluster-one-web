@@ -1,2 +1,3 @@
-from .crud_protein import protein
-from .crud_graph import ppi_graph, cluster_graph
+from .crud_protein import protein  # noqa
+from .crud_graph import ppi_graph, cluster_graph  # noqa
+from .crud_edges import edge  # noqa
