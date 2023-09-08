@@ -21,8 +21,6 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
         db_obj = Edge(
             protein_a_id=obj["protein_a_id"],
             protein_b_id=obj["protein_b_id"],
-            weight=obj["weight"],
-            has_direction=obj["has_direction"],
             direction=obj["direction"],
         )
         db.add(db_obj)
@@ -30,6 +28,7 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
         db.refresh(db_obj)
         interaction = EdgeClusterInteraction(
             edge_id=db_obj.id,
+            weight=obj["weight"],
             cluster_graph_id=obj["refers_to"].id,
         )
         db.add(interaction)
@@ -51,6 +50,7 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
                     {
                         "edge_id": edge.id,
                         "cluster_graph_id": cluster_id,
+                        "weight": 1,
                     }
                 )
             db.bulk_insert_mappings(EdgeClusterInteraction, _interactions)
@@ -66,6 +66,7 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
         interaction = EdgeClusterInteraction(
             edge_id=db_obj.id,
             cluster_graph_id=obj["refers_to"].id,
+            weight=obj["weight"],
         )
         db.add(interaction)
         db.commit()
@@ -83,6 +84,7 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
                     {
                         "edge_id": edge.id,
                         "cluster_graph_id": cluster_id,
+                        "weight": 1,
                     }
                 )
             db.bulk_insert_mappings(EdgeClusterInteraction, _interactions)
