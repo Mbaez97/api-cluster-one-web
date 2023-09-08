@@ -78,11 +78,12 @@ def run_cluester_one(
     for complex in response:
         _layout = db.query(Layout).filter(Layout.name == "random").first()
         _obj = {
-            "external_weight": complex[4],
-            "internal_weight": complex[3],
-            "density": complex[2],
             "size": complex[1],
+            "density": complex[2],
+            "internal_weight": complex[3],
+            "external_weight": complex[4],
             "quality": complex[5],
+            "p_value": complex[6],
             "layout": _layout,
             "data": "/app/app/media/clusters/" + _file_name,
         }
@@ -125,8 +126,6 @@ def run_cluester_one(
                             {
                                 "protein_a_id": _protein["data"]["id"],
                                 "protein_b_id": _protein2["data"]["id"],
-                                "weight": 1,
-                                "has_direction": False,
                                 "direction": 0,
                             }
                         )
@@ -140,6 +139,7 @@ def run_cluester_one(
                 "internal_weight": _cluster_obj.internal_weight,
                 "external_weight": _cluster_obj.external_weight,
                 "quantity": _cluster_obj.quality,
+                "p_value": _cluster_obj.p_value,
                 "nodes": _proteins_obj,
                 "edges": _edges,
             }

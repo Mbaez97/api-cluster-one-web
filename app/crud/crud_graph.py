@@ -23,11 +23,7 @@ class CRUDPPIGraph(CRUDBase[PPIGraph, schemas.GraphCreate, schemas.GraphUpdate])
     def create_ppi_from_file(self, db, *, obj: dict) -> PPIGraph:
         """Create ppi from file"""
         db_obj = PPIGraph(
-            # external_weight=obj["external_weight"],
-            # internal_weight=obj["internal_weight"],
-            density=obj["density"],
             size=obj["size"],
-            # quality=obj["quality"],
             layout=obj["layout"],
             data=obj["data"],
             name=obj["name"],
@@ -61,6 +57,7 @@ class CRUDClusterGraph(
             density=obj["density"],
             size=obj["size"],
             quality=obj["quality"],
+            p_value=obj["p_value"],
             layout=obj["layout"],
             data=obj["data"],
         )
