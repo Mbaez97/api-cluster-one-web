@@ -21,10 +21,10 @@ class Protein(BaseWithDatetime):
     # go_terms = relationship("GoTerm", back_populates="protein")
 
 
-class ProteinComplex(BaseWithDatetime):
+class OverlappingProtein(BaseWithDatetime):
     @declared_attr
     def __tablename__(cls) -> str:
-        return "protein_complex"
+        return "overlapping_protein"
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), nullable=False)
