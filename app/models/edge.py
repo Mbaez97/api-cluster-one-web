@@ -1,6 +1,6 @@
 """Edge models"""
 
-from sqlalchemy import Column, Float, Boolean, Integer, ForeignKey
+from sqlalchemy import Column, Float, Boolean, Integer, ForeignKey, UniqueConstraint
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
@@ -12,6 +12,10 @@ class Edge(BaseWithDatetime):
     @declared_attr
     def __tablename__(cls) -> str:
         return "edge"
+
+    @declared_attr
+    def __table_args__(cls):
+        return (UniqueConstraint("protein_a_id", "protein_b_id", "direction"),)
 
     DIRECTION_CHOICES = [
         (0, "None"),
@@ -25,8 +29,6 @@ class Edge(BaseWithDatetime):
     protein_b_id = Column(Integer, ForeignKey("protein.id"), nullable=True)
     protein_a = relationship(Protein, foreign_keys=[protein_a_id])
     protein_b = relationship(Protein, foreign_keys=[protein_b_id])
-    weight = Column(Float, nullable=False)
-    has_direction = Column(Boolean, nullable=False, default=False)
     direction = Column(Integer, nullable=False, default=0)
     ppi_interactions = relationship(
         "PPIGraph", secondary="edge_ppi_interaction", back_populates="edge"
