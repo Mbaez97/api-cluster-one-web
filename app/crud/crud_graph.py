@@ -28,6 +28,7 @@ class CRUDPPIGraph(CRUDBase[PPIGraph, schemas.GraphCreate, schemas.GraphUpdate])
             data=obj["data"],
             name=obj["name"],
             preloaded=obj["preloaded"],
+            density=obj["density"],
         )
         db.add(db_obj)
         db.commit()
