@@ -48,9 +48,10 @@ class ClusterGraph(AbstractGraph):
         return "cluster_graph"
 
     id = Column(Integer, ForeignKey("graph.id"), primary_key=True, index=True)
-    quality = Column(Float, nullable=False)
-    external_weight = Column(Float, nullable=False)
-    internal_weight = Column(Float, nullable=False)
+    quality = Column(Float, nullable=False, default=0.0)
+    external_weight = Column(Float, nullable=False, default=0.0)
+    internal_weight = Column(Float, nullable=False, default=0.0)
+    p_value = Column(Float, nullable=False, default=0.0)
     data = Column(String(255), nullable=True)
     is_complex = Column(Boolean, nullable=True, default=False)
     # Definición de la relación muchos a muchos con la tabla "edges"
