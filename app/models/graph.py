@@ -61,6 +61,6 @@ class ClusterGraph(AbstractGraph):
         back_populates="cluster_interactions",
     )
     protein_complexes = relationship(
-        "ProteinComplex",
+        "OverlappingProtein",
         back_populates="cluster_graph",
     )
