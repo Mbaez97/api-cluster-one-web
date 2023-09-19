@@ -80,7 +80,9 @@ def get_all_ppi_graph(
         response.append(
             {
                 "id": ppi.id,
-                "name": ppi.name,
+                "name": ppi.name.replace(".csv", "")
+                .replace(".txt", "")
+                .upper(),  # noqa
                 "data": ppi.data,
                 "density": ppi.density,
                 "size": ppi.size,
