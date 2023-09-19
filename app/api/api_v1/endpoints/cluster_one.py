@@ -48,8 +48,10 @@ def get_random_layout():
 def run_cluester_one(
     db: Session = Depends(deps.get_db),
     pp_id: int = Query(None, description="PPI ID", gt=0),
-    size: int = Query(None, description="Size of clusters", gt=0),
-    density: float = Query(None, description="Density of clusters", gt=0),
+    min_size: int = Query(None, description="Size of clusters", gt=0),
+    min_density: float = Query(None, description="Density of clusters", gt=0),
+    max_overlap: float = Query(None, description="Max overlap of clusters", gt=0),
+    penalty: float = Query(None, description="Penalty of clusters", gt=0),
 ):
     """
     Get All Cluster data from ClusterOne
@@ -68,10 +70,14 @@ def run_cluester_one(
     if not ppi_obj:
         raise HTTPException(status_code=404, detail="PPI not found")
     _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
-    if size:
-        _command = _command + f" -s {size}"
-    if density:
-        _command = _command + f" -d {density}"
+    if min_size:
+        _command = _command + f" -s {min_size}"
+    if min_density:
+        _command = _command + f" -d {min_density}"
+    if max_overlap:
+        _command = _command + f" --max-overlap {max_overlap}"
+    if penalty:
+        _command = _command + f" --penalty {penalty}"
     response = execute_cluster_one(_command, file_name=_file_name)
     cluster_one_execution_time = time.time()
     _clusters = []
