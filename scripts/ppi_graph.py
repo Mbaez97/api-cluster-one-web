@@ -7,7 +7,8 @@ HERE = Path(__file__).parent
 sys.path.append(str(HERE / "../"))
 
 from libs.lib_manejo_csv import lee_csv, lee_txt
-from app.models import Protein, Style, Edge, PPIGraph, Layout
+from app.models import Protein, Edge, PPIGraph, Layout, EdgePPIInteraction
+from app.crud import protein as crud_protein, edge as crud_edge
 from app.db.session import SessionLocal
 
 from config import Settings
@@ -118,6 +119,41 @@ def crate_layouts():
         db.add(_layout)
         db.commit()
 
-
-crate_layouts()
-create_ppi("./example/collins2007.txt")
+def create_edge_ppi_interaction_by_ppi_id(file_path: str, ppi_id: int):
+    ppi_dataset = lee_txt(file_path, delimiter="\t")
+    db = SessionLocal()
+    _ppi_objet = db.query(PPIGraph).filter(PPIGraph.id == ppi_id).first()
+    for data in ppi_dataset:
+        data = data.replace("\n", "")
+        _data = data.split("\t")
+        if len(_data) == 1:
+            _data = data.split(" ")
+        protein_1 = crud_protein.get_by_name(db, name=_data[0])
+        protein_2 = crud_protein.get_by_name(db, name=_data[1])
+        try:
+            _weight = float(_data[2])
+        except Exception:
+            _weight = 0.0
+        if not protein_1:
+            protein_1 = crud_protein.quick_creation(db, name=_data[0])
+        if not protein_2:
+            protein_2 = crud_protein.quick_creation(db, name=_data[1])
+        _edge = crud_edge.get_by_proteins(db, protein_a_id=protein_1.id, protein_b_id=protein_2.id)
+        if _edge:
+            _obj = {
+                "id": _edge.id,
+                "refers_to": _ppi_objet,
+                "weight": _weight,
+            }
+            crud_edge.add_edge_to_ppi(db, obj=_obj)
+        else:
+            _obj = {
+                "protein_a_id": protein_1.id,
+                "protein_b_id": protein_2.id,
+                "weight": _weight,
+                "refers_to": _ppi_objet,
+                "direction": 0,
+            }
+            crud_edge.create_edge_for_ppi(db, obj=_obj)
+    
+create_edge_ppi_interaction_by_ppi_id("./app/media/ppi/gavin2006_socioaffinities_rescaled.txt", 24275)
