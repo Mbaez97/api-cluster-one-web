@@ -60,7 +60,7 @@ def get_proteins_interactions(
     _cluster_graph = crud.cluster_graph.get_cluster_by_id(db, id=cluster_id)
     if not _cluster_graph:
         raise HTTPException(status_code=404, detail="Cluster not found")
-    _proteins = crud.protein.get_by_cluster(db, cluster_id=cluster_id)
+    _proteins = crud.protein.get_all_by_cluster(db, cluster_id=cluster_id)
     if not _proteins:
         raise HTTPException(status_code=404, detail="Protein not found")
     _response = [ProteinBase(**p.__dict__) for p in _proteins]

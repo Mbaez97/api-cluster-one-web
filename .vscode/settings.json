@@ -1,6 +1,6 @@
 {
     "makefile.extensionOutputFolder": "./.vscode",
-    "workbench.colorTheme": "Visual Studio 2017 Dark - C++",
+    "workbench.colorTheme": "Copilot Theme",
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
