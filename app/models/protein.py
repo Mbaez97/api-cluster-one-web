@@ -18,7 +18,6 @@ class Protein(BaseWithDatetime):
     description = Column(Text, nullable=True)
     url_info = Column(String(255), nullable=True)
     score = Column(Float, nullable=False)
-    # go_terms = relationship("GoTerm", back_populates="protein")
 
 
 class OverlappingProtein(BaseWithDatetime):
@@ -31,7 +30,6 @@ class OverlappingProtein(BaseWithDatetime):
     description = Column(Text, nullable=True)
     url_info = Column(String(255), nullable=True)
     score = Column(Float, nullable=False)
-    # go_terms = relationship("GoTerm", back_populates="protein")
     is_important = Column(Boolean, nullable=False, default=False)
     notes = Column(Text, nullable=True)
     cluster_graph_id = Column(Integer, ForeignKey("cluster_graph.id"), nullable=False)
