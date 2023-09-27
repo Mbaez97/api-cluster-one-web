@@ -98,3 +98,4 @@ class CRUDOverlappingProtein(
         return db.query(OverlappingProtein).filter(OverlappingProtein.id.in_(_proteins_id)).all()
 
 protein = CRUDProtein(Protein)
+overlapping_protein = CRUDOverlappingProtein(OverlappingProtein)

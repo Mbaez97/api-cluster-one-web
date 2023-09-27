@@ -43,6 +43,17 @@ def get_random_layout():
     )
 
 
+def edge_exists(protein1_id: int, protein2_id: int, _edges: list):
+    """Verifica si un arco ya existe entre dos nodos."""
+    for edge in _edges:
+        source, target = edge["data"]["source"], edge["data"]["target"]
+        if (source == protein1_id and target == protein2_id) or (
+            source == protein2_id and target == protein1_id
+        ):
+            return True
+    return False
+
+
 # ClusterOne API
 @router.post("/run/")
 def run_cluester_one(
@@ -60,15 +71,17 @@ def run_cluester_one(
     #     _base_command = "java -jar cluster_one-1.0.jar"
     # else:
     # _base_command = f"java -jar cluster_one-{cluster_one_version}.jar"
+
     start_time = time.time()
-    _base_command = "java -jar cluster_one-1.0.jar"
-    _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
-    _final_command = "> " + _file_name
     if not pp_id:
         raise HTTPException(status_code=404, detail="PPI not found")
     ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=pp_id)
     if not ppi_obj:
         raise HTTPException(status_code=404, detail="PPI not found")
+
+    _base_command = "java -jar cluster_one-1.0.jar"
+    _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
+    _final_command = "> " + _file_name
     _command = f"{_base_command} {ppi_obj.data} -F csv {_final_command}"
     if min_size:
         _command = _command + f" -s {min_size}"
@@ -78,6 +91,19 @@ def run_cluester_one(
         _command = _command + f" --max-overlap {max_overlap}"
     if penalty:
         _command = _command + f" --penalty {penalty}"
+    _params = {
+        "min_size": min_size,
+        "min_density": min_density,
+        "max_overlap": max_overlap,
+        "penalty": penalty,
+        "ppi_graph_id": pp_id,
+    }
+    _params_obj = crud.params.get_by_elements(db, obj=_params)
+    _exist_params = False
+    if not _params_obj:
+        _params_obj = crud.params.create(db, obj=_params)
+    else:
+        _exist_params = True
     response = execute_cluster_one(_command, file_name=_file_name)
     cluster_one_execution_time = time.time()
     _clusters = []
@@ -92,10 +118,18 @@ def run_cluester_one(
             "p_value": complex[6],
             "layout": _layout,
             "data": "/app/app/media/clusters/" + _file_name,
+            "cluster_one_log_params_id": _params_obj.id,
         }
-        _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
+
+        if _exist_params:
+            _cluster_obj = crud.cluster_graph.get_by_elements(db, obj=_obj)
+            if not _cluster_obj:
+                _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
+        else:
+            _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
+
+        # Proteins
         _proteins_obj = []
-        _edges = []
         _proteins = complex[7].split(" ")
         for protein in _proteins:
             _protein_obj = crud.protein.get_by_name(db, name=protein)
@@ -122,14 +156,21 @@ def run_cluester_one(
                     },
                 }
             _proteins_obj.append(_protein_node)
+
+        # Edges
+        _edges = []
         _edges_to_create_in_cluster = []
         _edges_to_add_in_cluster = []
-        for _protein in _proteins_obj:
-            for _protein2 in _proteins_obj:
-                if _protein["data"]["id"] != _protein2["data"]["id"]:
+        for i in range(len(_proteins_obj)):
+            for j in range(i + 1, len(_proteins_obj)):
+                _protein1 = _proteins_obj[i]
+                _protein2 = _proteins_obj[j]
+
+                # Verificar si el arco ya existe.
+                if not edge_exists(_protein1["data"]["id"], _protein2["data"]["id"]):
                     _edge = {
                         "data": {
-                            "source": _protein["data"]["id"],
+                            "source": _protein1["data"]["id"],
                             "target": _protein2["data"]["id"],
                             "label": "1",
                         },
@@ -137,19 +178,36 @@ def run_cluester_one(
                     _edges.append(_edge)
                     _edge_obj = crud.edge.get_by_proteins(
                         db,
-                        protein_a_id=_protein["data"]["id"],
+                        protein_a_id=_protein1["data"]["id"],
                         protein_b_id=_protein2["data"]["id"],
+                    )
+                    _weight = crud.edge.get_weight_edge_from_ppi(
+                        db,
+                        protein_a_id=_protein1["data"]["id"],
+                        protein_b_id=_protein2["data"]["id"],
+                        ppi_id=pp_id,
                     )
                     if not _edge_obj:
                         _edges_to_create_in_cluster.append(
                             {
-                                "protein_a_id": _protein["data"]["id"],
+                                "protein_a_id": _protein1["data"]["id"],
                                 "protein_b_id": _protein2["data"]["id"],
                                 "direction": 0,
+                                "weight": _weight,
                             }
                         )
                     else:
-                        _edges_to_add_in_cluster.append(_edge_obj)
+                        # Validate if the edge is already in the cluster
+                        _edge_cluster = crud.edge.in_cluster(
+                            db, obj={}, edge_id=_edge_obj.id, cluster_id=_cluster_obj.id
+                        )
+                        if not _edge_cluster:
+                            _edges_to_add_in_cluster.append(
+                                {
+                                    "obj": _edge_obj,
+                                    "weight": _weight,
+                                }
+                            )
         _clusters.append(
             {
                 "code": str(_cluster_obj.id),
@@ -163,6 +221,8 @@ def run_cluester_one(
                 "edges": _edges,
             }
         )
+
+        # Create edges -> Execute by celery task
         if _edges_to_create_in_cluster:
             crud.edge.bulk_create_edge_for_cluster(
                 db,
@@ -177,7 +237,6 @@ def run_cluester_one(
                 edge_list=_edges_to_add_in_cluster,
                 cluster_id=_cluster_obj.id,
             )
-    print("DONE!")
     end_time = time.time()
     print(
         f"ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"
