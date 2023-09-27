@@ -33,5 +33,19 @@ class CRUDClusterOneLogParams(
         )
         return db_obj
 
+    def create_params_logs(self, db, *, obj: dict) -> ClusterOneLogParams:
+        """Create cluster"""
+        db_obj = ClusterOneLogParams(
+            min_size=obj["min_size"],
+            min_density=obj["min_density"],
+            max_overlap=obj["max_overlap"],
+            penalty=obj["penalty"],
+            ppi_graph_id=obj["ppi_graph_id"],
+        )
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
+
 
 params = CRUDClusterOneLogParams(ClusterOneLogParams)

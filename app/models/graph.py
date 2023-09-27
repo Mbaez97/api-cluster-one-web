@@ -34,6 +34,10 @@ class PPIGraph(AbstractGraph):
     edge = relationship(
         "Edge", secondary="edge_ppi_interaction", back_populates="ppi_interactions"
     )
+    cluster_one_log_params = relationship(
+        "ClusterOneLogParams",
+        back_populates="ppi_graph",
+    )
 
 
 class ClusterGraph(AbstractGraph):

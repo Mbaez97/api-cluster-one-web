@@ -210,14 +210,14 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
                 .join(EdgePPIInteraction)
                 .filter(Edge.protein_a_id == protein_a_id)
                 .filter(Edge.protein_b_id == protein_b_id)
-                .filter(EdgePPIInteraction.ppi_graph_id == ppi_id)
+                .filter(EdgePPIInteraction.ppi_interaction_id == ppi_id)
                 .first()
             )
         else:
             return (
                 db.query(Edge)
                 .join(EdgePPIInteraction)
-                .filter(EdgePPIInteraction.ppi_graph_id == ppi_id)
+                .filter(EdgePPIInteraction.ppi_interaction_id == ppi_id)
                 .all()
             )
 
@@ -225,7 +225,6 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
         self,
         db,
         *,
-        obj: dict,
         ppi_id: int,
         protein_a_id: int = 0,
         protein_b_id: int = 0,
@@ -234,12 +233,20 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
         Get Edge from PPI
         """
         if protein_a_id != 0 and protein_b_id != 0:
-            return (
+            _edge = self.get_by_proteins(
+                db,
+                protein_a_id=protein_a_id,
+                protein_b_id=protein_b_id,
+            )
+            _interaction = (
                 db.query(EdgePPIInteraction)
-                .filter(EdgePPIInteraction.ppi_graph_id == ppi_id)
-                .filter(EdgePPIInteraction.edge_id == obj.id)
+                .filter(EdgePPIInteraction.ppi_interaction_id == ppi_id)
+                .filter(EdgePPIInteraction.edge_id == _edge.id)
                 .first()
-            ).weight
+            )
+            if _interaction:
+                return _interaction.weight
+            return 0
         else:
             return 0
 
