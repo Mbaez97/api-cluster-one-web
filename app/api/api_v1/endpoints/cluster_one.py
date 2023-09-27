@@ -101,12 +101,17 @@ def run_cluester_one(
     _params_obj = crud.params.get_by_elements(db, obj=_params)
     _exist_params = False
     if not _params_obj:
-        _params_obj = crud.params.create(db, obj=_params)
+        _params_obj = crud.params.create_params_logs(db, obj=_params)
+        print("LOGS: Params created")
     else:
         _exist_params = True
     response = execute_cluster_one(_command, file_name=_file_name)
     cluster_one_execution_time = time.time()
     _clusters = []
+    _total_protein_uses_time = 0
+    _total_edge_uses_time = 0
+    _total_time_create_or_add_edge_into_cluster = 0
+    print("LOGS: Get or Creating clusters in DB")
     for complex in response:
         _layout = db.query(Layout).filter(Layout.name == "random").first()
         _obj = {
@@ -122,13 +127,13 @@ def run_cluester_one(
         }
 
         if _exist_params:
-            _cluster_obj = crud.cluster_graph.get_by_elements(db, obj=_obj)
+            _cluster_obj = crud.cluster_graph.get_cluster_by_elements(db, obj=_obj)
             if not _cluster_obj:
                 _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
         else:
             _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
-
         # Proteins
+        _initial_protein_uses_time = time.time()
         _proteins_obj = []
         _proteins = complex[7].split(" ")
         for protein in _proteins:
@@ -156,8 +161,11 @@ def run_cluester_one(
                     },
                 }
             _proteins_obj.append(_protein_node)
+        _protein_uses_time = time.time()
+        _total_protein_uses_time += _protein_uses_time - _initial_protein_uses_time
 
         # Edges
+        _initial_edge_uses_time = time.time()
         _edges = []
         _edges_to_create_in_cluster = []
         _edges_to_add_in_cluster = []
@@ -167,47 +175,59 @@ def run_cluester_one(
                 _protein2 = _proteins_obj[j]
 
                 # Verificar si el arco ya existe.
-                if not edge_exists(_protein1["data"]["id"], _protein2["data"]["id"]):
+                if not edge_exists(
+                    _protein1["data"]["id"], _protein2["data"]["id"], _edges
+                ):
+                    _weight = 1
                     _edge = {
                         "data": {
                             "source": _protein1["data"]["id"],
                             "target": _protein2["data"]["id"],
-                            "label": "1",
+                            "label": f"{_weight}",
                         },
                     }
                     _edges.append(_edge)
-                    _edge_obj = crud.edge.get_by_proteins(
-                        db,
-                        protein_a_id=_protein1["data"]["id"],
-                        protein_b_id=_protein2["data"]["id"],
-                    )
-                    _weight = crud.edge.get_weight_edge_from_ppi(
-                        db,
-                        protein_a_id=_protein1["data"]["id"],
-                        protein_b_id=_protein2["data"]["id"],
-                        ppi_id=pp_id,
-                    )
-                    if not _edge_obj:
-                        _edges_to_create_in_cluster.append(
-                            {
-                                "protein_a_id": _protein1["data"]["id"],
-                                "protein_b_id": _protein2["data"]["id"],
-                                "direction": 0,
-                                "weight": _weight,
-                            }
-                        )
-                    else:
-                        # Validate if the edge is already in the cluster
-                        _edge_cluster = crud.edge.in_cluster(
-                            db, obj={}, edge_id=_edge_obj.id, cluster_id=_cluster_obj.id
-                        )
-                        if not _edge_cluster:
-                            _edges_to_add_in_cluster.append(
-                                {
-                                    "obj": _edge_obj,
-                                    "weight": _weight,
-                                }
-                            )
+                    # TODO: Sent to celery task, params is _edges and _cluster_obj.id and pp_id
+                    # _edge_obj = crud.edge.get_by_proteins(
+                    #     db,
+                    #     protein_a_id=_protein1["data"]["id"],
+                    #     protein_b_id=_protein2["data"]["id"],
+                    # )
+                    # try:
+                    #     _weight = crud.edge.get_weight_edge_from_ppi(
+                    #         db,
+                    #         protein_a_id=_protein1["data"]["id"],
+                    #         protein_b_id=_protein2["data"]["id"],
+                    #         ppi_id=pp_id,
+                    #     )
+                    # except Exception as e:
+                    #     print(e)
+                    #     _weight = 1
+
+                    # if not _edge_obj:
+                    #     _edges_to_create_in_cluster.append(
+                    #         {
+                    #             "protein_a_id": _protein1["data"]["id"],
+                    #             "protein_b_id": _protein2["data"]["id"],
+                    #             "direction": 0,
+                    #             "weight": _weight,
+                    #         }
+                    #     )
+                    # else:
+                    #     # Validate if the edge is already in the cluster
+                    #     _edge_cluster = crud.edge.in_cluster(
+                    #         db, obj={}, edge_id=_edge_obj.id, cluster_id=_cluster_obj.id
+                    #     )
+                    #     if not _edge_cluster:
+                    #         _edges_to_add_in_cluster.append(
+                    #             {
+                    #                 "obj": _edge_obj,
+                    #                 "weight": _weight,
+                    #             }
+                    #         )
+        _edge_uses_time = time.time()
+        _total_edge_uses_time += _edge_uses_time - _initial_edge_uses_time
+
         _clusters.append(
             {
                 "code": str(_cluster_obj.id),
@@ -222,26 +242,39 @@ def run_cluester_one(
             }
         )
 
-        # Create edges -> Execute by celery task
-        if _edges_to_create_in_cluster:
-            crud.edge.bulk_create_edge_for_cluster(
-                db,
-                obj={},
-                edge_list=_edges_to_create_in_cluster,
-                cluster_id=_cluster_obj.id,
-            )
-        if _edges_to_add_in_cluster:
-            crud.edge.bulk_add_edge_to_cluster(
-                db,
-                obj={},
-                edge_list=_edges_to_add_in_cluster,
-                cluster_id=_cluster_obj.id,
-            )
+        # # Create edges -> Execute by celery task
+        # _initial_creation_time = time.time()
+        # if _edges_to_create_in_cluster:
+        #     print(f"LOGS: Creating {len(_edges_to_create_in_cluster)} edges")
+        #     crud.edge.bulk_create_edge_for_cluster(
+        #         db,
+        #         obj={},
+        #         edge_list=_edges_to_create_in_cluster,
+        #         cluster_id=_cluster_obj.id,
+        #     )
+        # if _edges_to_add_in_cluster:
+        #     print(f"LOGS: Adding {len(_edges_to_add_in_cluster)} edges")
+        #     crud.edge.bulk_add_edge_to_cluster(
+        #         db,
+        #         obj={},
+        #         edge_list=_edges_to_add_in_cluster,
+        #         cluster_id=_cluster_obj.id,
+        #     )
+        # _final_creation_time = time.time()
+        # _total_time_create_or_add_edge_into_cluster += (
+        #     _final_creation_time - _initial_creation_time
+        # )
     end_time = time.time()
     print(
-        f"ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"
+        f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"
     )
-    print(f"Total Execution Time: {(end_time - start_time):.4f} seconds")
+    # print(f"LOGS: Cluster Uses Time: {(_cluster_uses_time - start_time):.4f} seconds")
+    print(f"LOGS: Protein Uses Time: {(_total_protein_uses_time):.4f} seconds")
+    print(f"LOGS: Edge Uses Time: {(_total_edge_uses_time):.4f} seconds")
+    # print(
+    #     f"LOGS: Total Time to create or add edges into cluster: {_total_time_create_or_add_edge_into_cluster:.4f} seconds"
+    # )
+    print(f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds")
     return _clusters
 
 
