@@ -54,6 +54,9 @@ class ClusterGraph(AbstractGraph):
     p_value = Column(Float, nullable=False, default=0.0)
     data = Column(String(255), nullable=True)
     is_complex = Column(Boolean, nullable=True, default=False)
+    cluster_one_log_params_id = Column(
+        Integer, ForeignKey("cluster_one_log_params.id"), nullable=True
+    )
     # Definición de la relación muchos a muchos con la tabla "edges"
     edges = relationship(
         "Edge",
@@ -62,5 +65,9 @@ class ClusterGraph(AbstractGraph):
     )
     protein_complexes = relationship(
         "OverlappingProtein",
+        back_populates="cluster_graph",
+    )
+    cluster_one_log_params = relationship(
+        "ClusterOneLogParams",
         back_populates="cluster_graph",
     )
