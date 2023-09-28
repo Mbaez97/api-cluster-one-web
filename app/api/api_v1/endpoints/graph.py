@@ -1,8 +1,6 @@
 """Get Graph data"""
-from datetime import datetime
-from typing import Any, List
+from typing import List
 
-from fastapi.responses import ORJSONResponse
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
 

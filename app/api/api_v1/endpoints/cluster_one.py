@@ -55,6 +55,54 @@ def edge_exists(protein1_id: int, protein2_id: int, _edges: list):
     return False
 
 
+def process_data(data):
+    """
+    This function process the data to add the protein complex node and edges
+    """
+    print("LOGS: Processing data")
+    for i in range(len(data)):
+        for j in range(len(data[i]["nodes"])):
+            current_node_id = data[i]["nodes"][j]["data"]["id"]
+            for k in range(len(data)):
+                # Aca tenemos que evitar los duplicados
+                if i == k:
+                    continue
+                overlapping_nodes = [
+                    node
+                    for node in data[k]["nodes"]
+                    if node["data"]["id"] == current_node_id
+                ]
+                if overlapping_nodes:
+                    protein_complex = data[k]
+                    node_protein_complex = {
+                        "data": {
+                            "id": protein_complex["code"],
+                            "label": f"COMPLEX - {protein_complex['code']}",
+                            "overlapping": False,
+                            "type": "proteinComplex",
+                        }
+                    }
+                    data[i]["nodes"][j]["data"]["overlapping"] = True
+                    data[i]["nodes"].append(node_protein_complex)
+                    _edge_protein_complex = {
+                        "data": {
+                            "source": data[i]["nodes"][j]["data"]["id"],
+                            "target": node_protein_complex["data"]["id"],
+                            "label": "overlapping",
+                        }
+                    }
+                    data[i]["edges"].append(_edge_protein_complex)
+                    # Eliminar los edges que ya no son necesarios.
+                    for edge in data[i]["edges"]:
+                        source, target = (
+                            edge["data"]["source"],
+                            edge["data"]["target"],
+                        )
+                        if source == target:
+                            data[i]["edges"].remove(edge)
+    return data
+
+
 # ClusterOne API
 @router.post("/run/")
 def run_cluester_one(
@@ -142,26 +190,14 @@ def run_cluester_one(
             _protein_obj = crud.protein.get_by_name(db, name=protein)
             if not _protein_obj:
                 _protein_obj = crud.protein.quick_creation(db, name=protein)
-            _random = random.randint(0, 1)
-            # TODO: Remove this when the overlapping is fixed
-            if _random == 0:
-                _protein_node = {
-                    "data": {
-                        "id": _protein_obj.id,
-                        "label": _protein_obj.name,
-                        "type": "protein",
-                        "overlapping": False,
-                    },
-                }
-            else:
-                _protein_node = {
-                    "data": {
-                        "id": _protein_obj.id,
-                        "label": _protein_obj.name,
-                        "type": "protein",
-                        "overlapping": True,
-                    },
-                }
+            _protein_node = {
+                "data": {
+                    "id": _protein_obj.id,
+                    "label": _protein_obj.name,
+                    "type": "protein",
+                    "overlapping": False,
+                },
+            }
             _proteins_obj.append(_protein_node)
         _protein_uses_time = time.time()
         _total_protein_uses_time += (  # type: ignore
@@ -189,13 +225,6 @@ def run_cluester_one(
                         },
                     }
                     _edges.append(_edge)
-                    # Async Create edge for cluster
-                    async_creation_edge_for_cluster.delay(
-                        protein_a_id=_protein1["data"]["id"],
-                        protein_b_id=_protein2["data"]["id"],
-                        ppi_id=pp_id,
-                        cluster_id=_cluster_obj.id,
-                    )
         _edge_uses_time = time.time()
         _total_edge_uses_time += (  # type: ignore
             _edge_uses_time - _initial_edge_uses_time
@@ -206,15 +235,42 @@ def run_cluester_one(
                 "code": str(_cluster_obj.id),
                 "size": _cluster_obj.size,
                 "density": _cluster_obj.density,
-                "internal_weight": _cluster_obj.internal_weight,
-                "external_weight": _cluster_obj.external_weight,
                 "quality": _cluster_obj.quality,
                 "p_value": _cluster_obj.p_value,
                 "nodes": _proteins_obj,
                 "edges": _edges,
             }
         )
-
+    if _exist_params:
+        print("LOGS: Params already exists")
+        end_time = time.time()
+        print(
+            f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"  # noqa
+        )
+        print(
+            f"LOGS: Protein Uses Time: {(_total_protein_uses_time):.4f} seconds"  # noqa
+        )  # noqa
+        print(f"LOGS: Edge Uses Time: {(_total_edge_uses_time):.4f} seconds")
+        print(
+            f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds"  # noqa
+        )  # noqa
+        response_data = process_data(_clusters)
+        return response_data
+    print("LOGS: Creating edges in DB")
+    for _cluster in _clusters:
+        # Async Create edge for cluster
+        # async_creation_edge_for_cluster.delay(
+        #     cluster_edges=_cluster["edges"],
+        #     ppi_id=pp_id,
+        #     cluster_id=_cluster["code"],
+        # )
+        async_creation_edge_for_cluster.apply_async(
+            kwargs={
+                "cluster_edges": _cluster["edges"],
+                "ppi_id": pp_id,
+                "cluster_id": _cluster["code"],
+            },
+        )
     end_time = time.time()
     print(
         f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"  # noqa
@@ -222,7 +278,8 @@ def run_cluester_one(
     print(f"LOGS: Protein Uses Time: {(_total_protein_uses_time):.4f} seconds")
     print(f"LOGS: Edge Uses Time: {(_total_edge_uses_time):.4f} seconds")
     print(f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds")
-    return _clusters
+    response_data = process_data(_clusters)
+    return response_data
 
 
 @router.get("/{cluster_id}/csv")

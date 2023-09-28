@@ -26,6 +26,7 @@ class ProteinCreate(ProteinBase):
 class ProteinResponse(BaseModel):
     proteins: List[ProteinBase]
 
+
 class OverlappingProteinBase(BaseModel):
     id: Optional[int]
     name: Optional[str]
@@ -36,8 +37,10 @@ class OverlappingProteinBase(BaseModel):
     notes: Optional[str]
     cluster_graph_id: Optional[int]
 
+
 class OverlappingProteinUpdate(OverlappingProteinBase):
     updated_at: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
 
 class OverlappingProteinCreate(OverlappingProteinBase):
     created_at: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
