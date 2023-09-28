@@ -5,8 +5,7 @@ volumes:
   local_postgres_data_backups: {}
 
 services:
-  web_server:
-    &pythonbuild
+  web_server: &pythonbuild
     platform: "linux/amd64"
     build:
       context: .
@@ -24,6 +23,11 @@ services:
       - db
     command: uvicorn app.web_server:app --reload --host 0.0.0.0 --log-level debug
 
+  redis:
+    image: redis:5.0
+    ports:
+      - "6379:6379"
+
   db:
     build:
       context: .
@@ -36,3 +40,41 @@ services:
       - ./.env
     ports:
       - "5432:5432"
+
+  celeryworker:
+    platform: "linux/amd64"
+    image: api-cluster-one-web_celeryworker
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: ./compose/web-server/Dockerfile
+    command: [ "./start-celeryworker" ]
+
+  celerybeat:
+    platform: "linux/amd64"
+    image: api-cluster-one-web_celerybeat
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: ./compose/web-server/Dockerfile
+    command: [ "./start-celerybeat" ]
+
+  flower:
+    platform: "linux/amd64"
+    image: api-cluster-one-web_flower
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: ./compose/web-server/Dockerfile
+    command: [ "./start-flower" ]
