@@ -55,6 +55,54 @@ def edge_exists(protein1_id: int, protein2_id: int, _edges: list):
     return False
 
 
+def process_data(data):
+    """
+    This function process the data to add the protein complex node and edges
+    """
+    print("LOGS: Processing data")
+    for i in range(len(data)):
+        for j in range(len(data[i]["nodes"])):
+            current_node_id = data[i]["nodes"][j]["data"]["id"]
+            for k in range(len(data)):
+                # Aca tenemos que evitar los duplicados
+                if i == k:
+                    continue
+                overlapping_nodes = [
+                    node
+                    for node in data[k]["nodes"]
+                    if node["data"]["id"] == current_node_id
+                ]
+                if overlapping_nodes:
+                    protein_complex = data[k]
+                    node_protein_complex = {
+                        "data": {
+                            "id": protein_complex["code"],
+                            "label": f"COMPLEX - {protein_complex['code']}",
+                            "overlapping": False,
+                            "type": "proteinComplex",
+                        }
+                    }
+                    data[i]["nodes"][j]["data"]["overlapping"] = True
+                    data[i]["nodes"].append(node_protein_complex)
+                    _edge_protein_complex = {
+                        "data": {
+                            "source": data[i]["nodes"][j]["data"]["id"],
+                            "target": node_protein_complex["data"]["id"],
+                            "label": "overlapping",
+                        }
+                    }
+                    data[i]["edges"].append(_edge_protein_complex)
+                    # Eliminar los edges que ya no son necesarios.
+                    for edge in data[i]["edges"]:
+                        source, target = (
+                            edge["data"]["source"],
+                            edge["data"]["target"],
+                        )
+                        if source == target:
+                            data[i]["edges"].remove(edge)
+    return data
+
+
 # ClusterOne API
 @router.post("/run/")
 def run_cluester_one(
@@ -206,7 +254,8 @@ def run_cluester_one(
         print(
             f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds"  # noqa
         )  # noqa
-        return _clusters
+        response_data = process_data(_clusters)
+        return response_data
     print("LOGS: Creating edges in DB")
     for _cluster in _clusters:
         # Async Create edge for cluster
@@ -229,7 +278,8 @@ def run_cluester_one(
     print(f"LOGS: Protein Uses Time: {(_total_protein_uses_time):.4f} seconds")
     print(f"LOGS: Edge Uses Time: {(_total_edge_uses_time):.4f} seconds")
     print(f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds")
-    return _clusters
+    response_data = process_data(_clusters)
+    return response_data
 
 
 @router.get("/{cluster_id}/csv")
