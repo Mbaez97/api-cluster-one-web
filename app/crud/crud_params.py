@@ -3,7 +3,6 @@
 from app import schemas
 from app.crud.crud_base import CRUDBase
 from app.models import ClusterOneLogParams
-from typing import List
 
 
 class CRUDClusterOneLogParams(

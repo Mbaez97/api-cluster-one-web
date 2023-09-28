@@ -177,13 +177,6 @@ def run_cluester_one(
                         },
                     }
                     _edges.append(_edge)
-                    # Async Create edge for cluster
-                    async_creation_edge_for_cluster.delay(
-                        protein_a_id=_protein1["data"]["id"],
-                        protein_b_id=_protein2["data"]["id"],
-                        ppi_id=pp_id,
-                        cluster_id=_cluster_obj.id,
-                    )
         _edge_uses_time = time.time()
         _total_edge_uses_time += (  # type: ignore
             _edge_uses_time - _initial_edge_uses_time
@@ -200,7 +193,35 @@ def run_cluester_one(
                 "edges": _edges,
             }
         )
-
+    if _exist_params:
+        print("LOGS: Params already exists")
+        end_time = time.time()
+        print(
+            f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"  # noqa
+        )
+        print(
+            f"LOGS: Protein Uses Time: {(_total_protein_uses_time):.4f} seconds"  # noqa
+        )  # noqa
+        print(f"LOGS: Edge Uses Time: {(_total_edge_uses_time):.4f} seconds")
+        print(
+            f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds"  # noqa
+        )  # noqa
+        return _clusters
+    print("LOGS: Creating edges in DB")
+    for _cluster in _clusters:
+        # Async Create edge for cluster
+        # async_creation_edge_for_cluster.delay(
+        #     cluster_edges=_cluster["edges"],
+        #     ppi_id=pp_id,
+        #     cluster_id=_cluster["code"],
+        # )
+        async_creation_edge_for_cluster.apply_async(
+            kwargs={
+                "cluster_edges": _cluster["edges"],
+                "ppi_id": pp_id,
+                "cluster_id": _cluster["code"],
+            },
+        )
     end_time = time.time()
     print(
         f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"  # noqa
