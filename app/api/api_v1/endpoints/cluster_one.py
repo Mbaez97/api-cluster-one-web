@@ -142,26 +142,14 @@ def run_cluester_one(
             _protein_obj = crud.protein.get_by_name(db, name=protein)
             if not _protein_obj:
                 _protein_obj = crud.protein.quick_creation(db, name=protein)
-            _random = random.randint(0, 1)
-            # TODO: Remove this when the overlapping is fixed
-            if _random == 0:
-                _protein_node = {
-                    "data": {
-                        "id": _protein_obj.id,
-                        "label": _protein_obj.name,
-                        "type": "protein",
-                        "overlapping": False,
-                    },
-                }
-            else:
-                _protein_node = {
-                    "data": {
-                        "id": _protein_obj.id,
-                        "label": _protein_obj.name,
-                        "type": "protein",
-                        "overlapping": True,
-                    },
-                }
+            _protein_node = {
+                "data": {
+                    "id": _protein_obj.id,
+                    "label": _protein_obj.name,
+                    "type": "protein",
+                    "overlapping": False,
+                },
+            }
             _proteins_obj.append(_protein_node)
         _protein_uses_time = time.time()
         _total_protein_uses_time += (  # type: ignore
@@ -206,8 +194,6 @@ def run_cluester_one(
                 "code": str(_cluster_obj.id),
                 "size": _cluster_obj.size,
                 "density": _cluster_obj.density,
-                "internal_weight": _cluster_obj.internal_weight,
-                "external_weight": _cluster_obj.external_weight,
                 "quality": _cluster_obj.quality,
                 "p_value": _cluster_obj.p_value,
                 "nodes": _proteins_obj,
