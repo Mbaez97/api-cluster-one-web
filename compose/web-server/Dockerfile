@@ -1,4 +1,3 @@
-# FROM python:3.8-slim-buster as base
 FROM openjdk:11-jre-slim as base
 
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -24,5 +23,16 @@ COPY ./requirements.txt /
 RUN pip install -r /requirements.txt
 
 COPY . /app
+WORKDIR /app
+COPY ./compose/celery/worker/start ./start-celeryworker
+RUN sed -i 's/\r//' ./start-celeryworker
+RUN chmod +x ./start-celeryworker
 
+COPY ./compose/celery/beat/start ./start-celerybeat
+RUN sed -i 's/\r//' ./start-celerybeat
+RUN chmod +x ./start-celerybeat
+
+COPY ./compose/celery/flower/start ./start-flower
+RUN sed -i 's/\r//' ./start-flower
+RUN chmod +x ./start-flower
 WORKDIR /app

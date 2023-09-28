@@ -119,6 +119,7 @@ def crate_layouts():
         db.add(_layout)
         db.commit()
 
+
 def create_edge_ppi_interaction_by_ppi_id(file_path: str, ppi_id: int):
     ppi_dataset = lee_txt(file_path, delimiter="\t")
     db = SessionLocal()
@@ -138,7 +139,9 @@ def create_edge_ppi_interaction_by_ppi_id(file_path: str, ppi_id: int):
             protein_1 = crud_protein.quick_creation(db, name=_data[0])
         if not protein_2:
             protein_2 = crud_protein.quick_creation(db, name=_data[1])
-        _edge = crud_edge.get_by_proteins(db, protein_a_id=protein_1.id, protein_b_id=protein_2.id)
+        _edge = crud_edge.get_by_proteins(
+            db, protein_a_id=protein_1.id, protein_b_id=protein_2.id
+        )
         if _edge:
             _obj = {
                 "id": _edge.id,
@@ -155,5 +158,8 @@ def create_edge_ppi_interaction_by_ppi_id(file_path: str, ppi_id: int):
                 "direction": 0,
             }
             crud_edge.create_edge_for_ppi(db, obj=_obj)
-    
-create_edge_ppi_interaction_by_ppi_id("./app/media/ppi/gavin2006_socioaffinities_rescaled.txt", 24275)
+
+
+create_edge_ppi_interaction_by_ppi_id(
+    "./app/media/ppi/gavin2006_socioaffinities_rescaled.txt", 24275
+)
