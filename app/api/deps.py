@@ -5,7 +5,6 @@ from typing import Generator
 # from fastapi.security import OAuth2PasswordBearer
 
 # from pydantic import ValidationError
-from sqlalchemy.orm import Session
 
 # from config import settings
 from app.db.session import SessionLocal
