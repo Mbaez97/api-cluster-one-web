@@ -14,6 +14,7 @@ from app import crud
 from app.api.utils import execute_cluster_one
 from uuid import uuid4
 from app.models import Layout
+from app.taskapp.celery import test_celery
 
 
 router = APIRouter()
@@ -61,7 +62,9 @@ def run_cluester_one(
     pp_id: int = Query(None, description="PPI ID", gt=0),
     min_size: int = Query(None, description="Size of clusters", gt=0),
     min_density: float = Query(None, description="Density of clusters", gt=0),
-    max_overlap: float = Query(None, description="Max overlap of clusters", gt=0),
+    max_overlap: float = Query(
+        None, description="Max overlap of clusters", gt=0
+    ),  # noqa
     penalty: float = Query(None, description="Penalty of clusters", gt=0),
 ):
     """
@@ -242,6 +245,9 @@ def run_cluester_one(
             }
         )
 
+        test_celery.delay(
+            "test",
+        )
         # # Create edges -> Execute by celery task
         # _initial_creation_time = time.time()
         # if _edges_to_create_in_cluster:
