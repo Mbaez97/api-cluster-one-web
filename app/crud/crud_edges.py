@@ -7,7 +7,9 @@ from typing import List
 
 
 class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
-    def get_by_proteins(self, db, *, protein_a_id: int, protein_b_id: int) -> Edge:
+    def get_by_proteins(
+        self, db, *, protein_a_id: int, protein_b_id: int
+    ) -> Edge:  # noqa
         """Get edge by protein id"""
         return (
             db.query(Edge)
@@ -18,7 +20,7 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
 
     def create_edge_for_cluster(self, db, *, obj: dict) -> Edge:
         """Create cluster"""
-        db_obj = Edge(
+        db_obj = Edge(  # type: ignore
             protein_a_id=obj["protein_a_id"],
             protein_b_id=obj["protein_b_id"],
             direction=obj["direction"],
@@ -26,10 +28,10 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
-        interaction = EdgeClusterInteraction(
+        interaction = EdgeClusterInteraction(  # type: ignore
             edge_id=db_obj.id,
             weight=obj["weight"],
-            cluster_graph_id=obj["refers_to"].id,
+            cluster_graph_id=obj["refers_to"],
         )
         db.add(interaction)
         db.commit()
@@ -121,18 +123,17 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
             print(e)
             return False
 
-    def add_edge_to_cluster(self, db, *, obj: dict) -> Edge:
+    def add_edge_to_cluster(self, db, *, obj: dict):
         """Create cluster"""
-        db_obj = db.query(Edge).filter(Edge.id == obj["id"]).first()
-        interaction = EdgeClusterInteraction(
-            edge_id=db_obj.id,
-            cluster_graph_id=obj["refers_to"].id,
+        interaction = EdgeClusterInteraction(  # type: ignore
+            edge_id=obj["id"],
+            cluster_graph_id=obj["refers_to"],
             weight=obj["weight"],
         )
         db.add(interaction)
         db.commit()
         db.refresh(interaction)
-        return db_obj
+        return obj
 
     def add_edge_to_ppi(self, db, *, obj: dict) -> Edge:
         """Create cluster"""
