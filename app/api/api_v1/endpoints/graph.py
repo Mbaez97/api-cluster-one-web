@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app import crud
 from app.api import deps
 from app.models import Layout
+from app.taskapp.celery import async_creation_edge_for_ppi
 
 router = APIRouter()
 
@@ -41,6 +42,7 @@ def get_or_create_ppi_graph_from_file(
         _ppi_obj = crud.ppi_graph.get_ppi_by_name(db, name=file.filename)
         if not _ppi_obj:
             _new_ppi = crud.ppi_graph.create_ppi_from_file(db, obj=_data)
+            async_creation_edge_for_ppi.delay(_new_ppi.id)
             response = {
                 "id": _new_ppi.id,
                 "name": _new_ppi.name,
@@ -50,6 +52,7 @@ def get_or_create_ppi_graph_from_file(
                 "preloaded": _new_ppi.preloaded,
             }
             return response
+        async_creation_edge_for_ppi.delay(_ppi_obj.id)
         response = {
             "id": _ppi_obj.id,
             "name": _ppi_obj.name,
