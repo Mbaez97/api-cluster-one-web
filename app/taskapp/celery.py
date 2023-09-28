@@ -24,48 +24,53 @@ def async_creation_edge_for_cluster(
     cluster_id: int,
 ) -> str:
     db = SessionLocal()
-    _edge_obj = crud.edge.get_by_proteins(
-        db,
-        protein_a_id=protein_a_id,
-        protein_b_id=protein_b_id,
-    )
     try:
-        _weight = crud.edge.get_weight_edge_from_ppi(
+        _edge_obj = crud.edge.get_by_proteins(
             db,
             protein_a_id=protein_a_id,
             protein_b_id=protein_b_id,
-            ppi_id=ppi_id,
         )
-    except Exception as e:
-        print(e)
-        _weight = 1
-    if not _edge_obj:
-        crud.edge.create_edge_for_cluster(  # type: ignore
-            db,
-            obj={
-                "protein_a_id": protein_a_id,
-                "protein_b_id": protein_b_id,
-                "weight": _weight,
-                "direction": 1,
-                "refers_to": cluster_id,
-            },
-        )
-        print("LOGS: Edge created and added to cluster")
-    else:
-        # Validate if the edge is already in the cluster
-        _edge_cluster = crud.edge.in_cluster(
-            db, obj={}, edge_id=_edge_obj.id, cluster_id=cluster_id
-        )
-        if not _edge_cluster:
-            crud.edge.add_edge_to_cluster(
+        try:
+            _weight = crud.edge.get_weight_edge_from_ppi(
+                db,
+                protein_a_id=protein_a_id,
+                protein_b_id=protein_b_id,
+                ppi_id=ppi_id,
+            )
+        except Exception as e:
+            print(e)
+            _weight = 1
+        if not _edge_obj:
+            crud.edge.create_edge_for_cluster(  # type: ignore
                 db,
                 obj={
-                    "id": _edge_obj.id,
+                    "protein_a_id": protein_a_id,
+                    "protein_b_id": protein_b_id,
                     "weight": _weight,
+                    "direction": 1,
                     "refers_to": cluster_id,
                 },
             )
-            print("LOGS: Edge added to cluster")
+            print("LOGS: Edge created and added to cluster")
         else:
-            print("LOGS: Edge already in cluster")
+            # Validate if the edge is already in the cluster
+            _edge_cluster = crud.edge.in_cluster(
+                db, obj={}, edge_id=_edge_obj.id, cluster_id=cluster_id
+            )
+            if not _edge_cluster:
+                crud.edge.add_edge_to_cluster(
+                    db,
+                    obj={
+                        "id": _edge_obj.id,
+                        "weight": _weight,
+                        "refers_to": cluster_id,
+                    },
+                )
+                print("LOGS: Edge added to cluster")
+            else:
+                print("LOGS: Edge already in cluster")
+    except Exception as e:
+        print(e)
+    finally:
+        db.close()
     return f"Celery task: async_creation_edge_for_cluster {cluster_id} - {protein_a_id} - {protein_b_id} - {ppi_id}"  # noqa
