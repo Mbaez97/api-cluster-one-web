@@ -5,4 +5,4 @@ set -e
 
 
 rm -f './celerybeat.pid'
-celery -A app.taskapp beat -l INFO
+celery -A app.taskapp.celery beat -l INFO

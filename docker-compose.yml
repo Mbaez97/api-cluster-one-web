@@ -66,15 +66,14 @@ services:
       context: .
       dockerfile: ./compose/web-server/Dockerfile
     command: [ "./start-celerybeat" ]
-
-  flower:
-    platform: "linux/amd64"
-    image: api-cluster-one-web_flower
-    ports:
-      - "5555:5555"
-    env_file:
-      - .env
-    build:
-      context: .
-      dockerfile: ./compose/web-server/Dockerfile
-    command: [ "./start-flower" ]
+  # flower:
+  #   platform: "linux/amd64"
+  #   image: api-cluster-one-web_flower
+  #   ports:
+  #     - "5555:5555"
+  #   env_file:
+  #     - .env
+  #   build:
+  #     context: .
+  #     dockerfile: ./compose/web-server/Dockerfile
+  #   command: [ "./start-flower" ]

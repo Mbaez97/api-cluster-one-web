@@ -5,5 +5,5 @@ set -o nounset
 set -e
 
 
-celery -A app.taskapp worker -l INFO
+celery -A app.taskapp.celery worker -l INFO
 
