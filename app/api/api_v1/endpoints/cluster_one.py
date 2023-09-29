@@ -15,7 +15,7 @@ from app.api.utils import execute_cluster_one
 from uuid import uuid4
 from app.models import Layout
 from app.taskapp.celery import test_celery, async_creation_edge_for_cluster
-
+from app.api.api_v1.endpoints.graph import get_weight_by_protein
 
 router = APIRouter()
 
@@ -100,6 +100,22 @@ def process_data(data):
                         )
                         if source == target:
                             data[i]["edges"].remove(edge)
+    for cluster in data:
+        for edge in cluster["edges"]:
+            if edge["data"]["label"] == "overlapping":
+                continue
+            _weight = get_weight_by_protein(
+                protein1_id=edge["data"]["source"],
+                protein2_id=edge["data"]["target"],
+                ppi_id=cluster["ppi_id"],
+            )
+            if _weight["weight"] == -1:
+                # pop edge
+                cluster["edges"].remove(edge)
+            elif _weight["weight"] == 0:
+                print("LOGS: Edge with weight 0")
+            else:
+                edge["data"]["label"] = f"{_weight['weight']}"
     return data
 
 
@@ -216,12 +232,11 @@ def run_cluester_one(
                 if not edge_exists(
                     _protein1["data"]["id"], _protein2["data"]["id"], _edges
                 ):
-                    _weight = 1
                     _edge = {
                         "data": {
                             "source": _protein1["data"]["id"],
                             "target": _protein2["data"]["id"],
-                            "label": f"{_weight}",
+                            "label": "0",
                         },
                     }
                     _edges.append(_edge)
@@ -239,10 +254,12 @@ def run_cluester_one(
                 "p_value": _cluster_obj.p_value,
                 "nodes": _proteins_obj,
                 "edges": _edges,
+                "ppi_id": pp_id,
             }
         )
     if _exist_params:
         print("LOGS: Params already exists")
+        response_data = process_data(_clusters)
         end_time = time.time()
         print(
             f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"  # noqa
@@ -254,7 +271,6 @@ def run_cluester_one(
         print(
             f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds"  # noqa
         )  # noqa
-        response_data = process_data(_clusters)
         return response_data
     print("LOGS: Creating edges in DB")
     for _cluster in _clusters:
@@ -271,6 +287,7 @@ def run_cluester_one(
                 "cluster_id": _cluster["code"],
             },
         )
+    response_data = process_data(_clusters)
     end_time = time.time()
     print(
         f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"  # noqa
@@ -278,7 +295,6 @@ def run_cluester_one(
     print(f"LOGS: Protein Uses Time: {(_total_protein_uses_time):.4f} seconds")
     print(f"LOGS: Edge Uses Time: {(_total_edge_uses_time):.4f} seconds")
     print(f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds")
-    response_data = process_data(_clusters)
     return response_data
 
 
