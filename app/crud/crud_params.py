@@ -15,7 +15,7 @@ class CRUDClusterOneLogParams(
     def get_by_id(self, db, *, id: int) -> ClusterOneLogParams:
         """Get protein by id"""
         return (
-            db.query(ClusterOneLogParams).filter(ClusterOneLogParams.id == id).first()
+            db.query(ClusterOneLogParams).filter(ClusterOneLogParams.id == id).first()  # type: ignore  # noqa
         )
 
     def get_by_elements(self, db, *, obj: dict) -> ClusterOneLogParams:
@@ -34,7 +34,7 @@ class CRUDClusterOneLogParams(
 
     def create_params_logs(self, db, *, obj: dict) -> ClusterOneLogParams:
         """Create cluster"""
-        db_obj = ClusterOneLogParams(
+        db_obj = ClusterOneLogParams(  # type: ignore
             min_size=obj["min_size"],
             min_density=obj["min_density"],
             max_overlap=obj["max_overlap"],

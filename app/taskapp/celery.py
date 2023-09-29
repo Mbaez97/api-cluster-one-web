@@ -88,6 +88,7 @@ def async_insert_redis(
     _ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=ppi_id)
     ppi_dataset = lee_txt(_ppi_obj.data, delimiter="\t")
     r = Redis(host="redis", port=6379, db=3)
+    _objects = []
     for data in ppi_dataset:
         data = data.replace("\n", "")
         _data = data.split("\t")
@@ -114,10 +115,12 @@ def async_insert_redis(
                 }
             ),
         }
-        r.set(  # type: ignore
-            _redis_obj["key"],
-            _redis_obj["json"],
-        )
+        _objects.append(_redis_obj)
+        # r.set(  # type: ignore
+        #     _redis_obj["key"],
+        #     _redis_obj["json"],
+        # )
+    r.mset({obj["key"]: obj["json"] for obj in _objects})
     r.close()
     db.close()
     return f"Celery task: async_insert_redis -> PPI: {ppi_id}"

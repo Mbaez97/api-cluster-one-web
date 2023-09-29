@@ -7,7 +7,7 @@ from app.models import PPIGraph, ClusterGraph
 """crud ppi graph"""
 
 
-class CRUDPPIGraph(CRUDBase[PPIGraph, schemas.GraphCreate, schemas.GraphUpdate]):
+class CRUDPPIGraph(CRUDBase[PPIGraph, schemas.GraphCreate, schemas.GraphUpdate]):  # type: ignore # noqa
     def get_all_ppi(self, db) -> PPIGraph:
         """Get all ppi"""
         return db.query(PPIGraph).all()
@@ -22,7 +22,7 @@ class CRUDPPIGraph(CRUDBase[PPIGraph, schemas.GraphCreate, schemas.GraphUpdate])
 
     def create_ppi_from_file(self, db, *, obj: dict) -> PPIGraph:
         """Create ppi from file"""
-        db_obj = PPIGraph(
+        db_obj = PPIGraph(  # type: ignore
             size=obj["size"],
             layout=obj["layout"],
             data=obj["data"],
@@ -69,7 +69,7 @@ class CRUDClusterGraph(
 
     def create_cluster(self, db, *, obj: dict) -> ClusterGraph:
         """Create cluster"""
-        db_obj = ClusterGraph(
+        db_obj = ClusterGraph(  # type: ignore
             external_weight=obj["external_weight"],
             internal_weight=obj["internal_weight"],
             density=obj["density"],

@@ -1,20 +1,17 @@
-"""Assigns Raspadita box, libro and cartones"""
+"""Execute ClusterOne algorithm and return the data in json format."""
 import time
-
 import random
 
+from fastapi import APIRouter, Depends, HTTPException, Query  # noqa F401 # type: ignore
+from fastapi.responses import StreamingResponse  # noqa F401 # type: ignore
+from sqlalchemy.orm import Session  # noqa F401 # type: ignore
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
-
-# from app import crud
 from app.api import deps
 from app import crud
 from app.api.utils import execute_cluster_one
 from uuid import uuid4
 from app.models import Layout
-from app.taskapp.celery import test_celery, async_creation_edge_for_cluster
+from app.taskapp.celery import async_creation_edge_for_cluster
 from app.api.api_v1.endpoints.graph import get_weight_by_protein
 
 router = APIRouter()
@@ -59,7 +56,7 @@ def process_data(data):
     """
     This function process the data to add the protein complex node and edges
     """
-    print("LOGS: Processing data")
+    star_time = time.time()
     for i in range(len(data)):
         for j in range(len(data[i]["nodes"])):
             current_node_id = data[i]["nodes"][j]["data"]["id"]
@@ -72,7 +69,7 @@ def process_data(data):
                     for node in data[k]["nodes"]
                     if node["data"]["id"] == current_node_id
                 ]
-                if overlapping_nodes:
+                if len(overlapping_nodes) > 0:
                     protein_complex = data[k]
                     node_protein_complex = {
                         "data": {
@@ -88,7 +85,7 @@ def process_data(data):
                         "data": {
                             "source": data[i]["nodes"][j]["data"]["id"],
                             "target": node_protein_complex["data"]["id"],
-                            "label": "overlapping",
+                            "label": "Overlapping",
                         }
                     }
                     data[i]["edges"].append(_edge_protein_complex)
@@ -102,7 +99,8 @@ def process_data(data):
                             data[i]["edges"].remove(edge)
     for cluster in data:
         for edge in cluster["edges"]:
-            if edge["data"]["label"] == "overlapping":
+            if edge["data"]["label"] == "Overlapping":
+                edge["data"]["label"] = ""
                 continue
             _weight = get_weight_by_protein(
                 protein1_id=edge["data"]["source"],
@@ -112,16 +110,18 @@ def process_data(data):
             if _weight["weight"] == -1:
                 # pop edge
                 cluster["edges"].remove(edge)
-            elif _weight["weight"] == 0:
+            elif float(_weight["weight"]) == 0.0:
                 print("LOGS: Edge with weight 0")
             else:
                 edge["data"]["label"] = f"{_weight['weight']}"
+    end_time = time.time()
+    print(f"LOGS: Processing data time: {(end_time - star_time):.4f} seconds")
     return data
 
 
 # ClusterOne API
 @router.post("/run/")
-def run_cluester_one(
+def run_cluster_one(
     db: Session = Depends(deps.get_db),
     pp_id: int = Query(None, description="PPI ID", gt=0),
     min_size: int = Query(None, description="Size of clusters", gt=0),
