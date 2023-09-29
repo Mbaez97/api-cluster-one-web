@@ -1,14 +1,19 @@
 """Get Graph data"""
-from typing import List
 import json
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
-from sqlalchemy.orm import Session
+from fastapi import (  # noqa F401 # type: ignore
+    APIRouter,
+    Depends,
+    HTTPException,
+    File,
+    UploadFile,
+)  # noqa F401 # type: ignore
+from sqlalchemy.orm import Session  # type: ignore
 
 from app import crud
 from app.api import deps
 from app.models import Layout
 from app.taskapp.celery import async_creation_edge_for_ppi, async_insert_redis
-from redis import Redis
+from redis import Redis  # type: ignore
 
 router = APIRouter()
 
@@ -96,7 +101,7 @@ def get_all_ppi_graph(
     """
     _ppi = crud.ppi_graph.get_all_ppi(db)
     response = []
-    for ppi in _ppi:
+    for ppi in _ppi:  # type: ignore
         response.append(
             {
                 "id": ppi.id,

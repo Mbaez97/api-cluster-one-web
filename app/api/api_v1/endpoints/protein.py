@@ -1,10 +1,6 @@
-"""Assigns Raspadita box, libro and cartones"""
-from datetime import datetime
-from typing import Any, List
-
-from fastapi.responses import ORJSONResponse
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+"""Protein API Router."""
+from fastapi import APIRouter, Depends, HTTPException, Query  # noqa F401 # type: ignore
+from sqlalchemy.orm import Session  # type: ignore
 
 from app import crud
 from app.api import deps
@@ -29,7 +25,7 @@ def get_protein(
         protein = crud.protein.get_by_id(db, id=protein_id)
         if not protein:
             raise HTTPException(status_code=404, detail="Protein not found")
-    _response = [ProteinBase(**p.__dict__) for p in protein]
+    _response = [ProteinBase(**p.__dict__) for p in protein]  # type: ignore
     response = ProteinResponse(proteins=_response)
     return response
 
@@ -49,7 +45,7 @@ def get_protein_data(
     return response
 
 
-@router.get("/interactions/{cluster_id}", response_model=ProteinResponse)
+@router.get("/interactions/{cluster_id}")
 def get_proteins_interactions(
     cluster_id: int,
     db: Session = Depends(deps.get_db),
@@ -62,7 +58,7 @@ def get_proteins_interactions(
         raise HTTPException(status_code=404, detail="Cluster not found")
     _proteins = crud.protein.get_all_by_cluster(db, cluster_id=cluster_id)
     if not _proteins:
-        raise HTTPException(status_code=404, detail="Protein not found")
+        return []
     _response = [ProteinBase(**p.__dict__) for p in _proteins]
     response = ProteinResponse(proteins=_response)
     return response
