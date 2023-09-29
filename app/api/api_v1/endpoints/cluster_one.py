@@ -72,7 +72,7 @@ def process_data(data):
                     for node in data[k]["nodes"]
                     if node["data"]["id"] == current_node_id
                 ]
-                if overlapping_nodes:
+                if len(overlapping_nodes) > 0:
                     protein_complex = data[k]
                     node_protein_complex = {
                         "data": {
@@ -88,7 +88,7 @@ def process_data(data):
                         "data": {
                             "source": data[i]["nodes"][j]["data"]["id"],
                             "target": node_protein_complex["data"]["id"],
-                            "label": "overlapping",
+                            "label": "Overlapping",
                         }
                     }
                     data[i]["edges"].append(_edge_protein_complex)
@@ -102,7 +102,7 @@ def process_data(data):
                             data[i]["edges"].remove(edge)
     for cluster in data:
         for edge in cluster["edges"]:
-            if edge["data"]["label"] == "overlapping":
+            if edge["data"]["label"] == "Overlapping":
                 continue
             _weight = get_weight_by_protein(
                 protein1_id=edge["data"]["source"],
@@ -112,7 +112,7 @@ def process_data(data):
             if _weight["weight"] == -1:
                 # pop edge
                 cluster["edges"].remove(edge)
-            elif _weight["weight"] == 0:
+            elif float(_weight["weight"]) == 0.0:
                 print("LOGS: Edge with weight 0")
             else:
                 edge["data"]["label"] = f"{_weight['weight']}"
@@ -121,7 +121,7 @@ def process_data(data):
 
 # ClusterOne API
 @router.post("/run/")
-def run_cluester_one(
+def run_cluster_one(
     db: Session = Depends(deps.get_db),
     pp_id: int = Query(None, description="PPI ID", gt=0),
     min_size: int = Query(None, description="Size of clusters", gt=0),
