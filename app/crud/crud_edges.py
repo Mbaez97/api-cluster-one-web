@@ -138,6 +138,14 @@ class CRUDEdge(CRUDBase[Edge, schemas.EdgeCreate, schemas.EdgeUpdate]):
     def add_edge_to_ppi(self, db, *, obj: dict) -> Edge:
         """Create cluster"""
         db_obj = db.query(Edge).filter(Edge.id == obj["id"]).first()
+        _validate = (
+            db.query(EdgePPIInteraction)
+            .filter(EdgePPIInteraction.edge_id == db_obj.id)
+            .filter(EdgePPIInteraction.ppi_interaction_id == obj["refers_to"].id)
+            .first()
+        )
+        if _validate:
+            return db_obj
         interaction = EdgePPIInteraction(
             edge_id=db_obj.id,
             ppi_interaction_id=obj["refers_to"].id,

@@ -1,12 +1,14 @@
 """Get Graph data"""
 from typing import List
-
+import json
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from sqlalchemy.orm import Session
 
 from app import crud
 from app.api import deps
 from app.models import Layout
+from app.taskapp.celery import async_creation_edge_for_ppi, async_insert_redis
+from redis import Redis
 
 router = APIRouter()
 
@@ -41,6 +43,8 @@ def get_or_create_ppi_graph_from_file(
         _ppi_obj = crud.ppi_graph.get_ppi_by_name(db, name=file.filename)
         if not _ppi_obj:
             _new_ppi = crud.ppi_graph.create_ppi_from_file(db, obj=_data)
+            async_insert_redis.delay(_new_ppi.id)
+            async_creation_edge_for_ppi.delay(_new_ppi.id)
             response = {
                 "id": _new_ppi.id,
                 "name": _new_ppi.name,
@@ -50,6 +54,8 @@ def get_or_create_ppi_graph_from_file(
                 "preloaded": _new_ppi.preloaded,
             }
             return response
+        async_insert_redis.delay(_ppi_obj.id)
+        async_creation_edge_for_ppi.delay(_ppi_obj.id)
         response = {
             "id": _ppi_obj.id,
             "name": _ppi_obj.name,
@@ -62,6 +68,22 @@ def get_or_create_ppi_graph_from_file(
         return response
     else:
         raise HTTPException(status_code=404, detail="File not found")
+
+
+@router.post("/ppi/preloaded/update/")
+def update_redis_preloaded(
+    db: Session = Depends(deps.get_db),
+    file_name: str = "",
+):
+    """
+    Create PPI data from file
+    """
+    _ppi_obj = crud.ppi_graph.get_ppi_by_name(db, name=file_name)
+    if not _ppi_obj:
+        raise HTTPException(status_code=404, detail="PPI not found")
+    async_insert_redis.delay(_ppi_obj.id)
+    print("LOGS: PPI updated")
+    return {"status": "ok"}
 
 
 # GET
@@ -85,6 +107,26 @@ def get_all_ppi_graph(
                 "density": ppi.density,
                 "size": ppi.size,
                 "preloaded": ppi.preloaded,
+                "file_name": ppi.name,
             }
         )
     return response
+
+
+@router.get("/ppi/proteins/")
+def get_weight_by_protein(
+    ppi_id: int,
+    protein1_id: int,
+    protein2_id: int,
+):
+    """
+    Get weight by protein
+    """
+    r = Redis(host="redis", port=6379, db=3)
+    _key = f"{protein1_id}-{protein2_id}-{ppi_id}"
+    data = r.get(_key)
+    if not data:
+        return {"weight": -1}
+    _data = json.loads(data.decode("utf-8"))
+    _weight = _data["weight"]
+    return {"weight": _weight}
