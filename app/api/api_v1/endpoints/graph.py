@@ -18,6 +18,39 @@ from redis import Redis  # type: ignore
 router = APIRouter()
 
 
+def get_weight_by_protein(
+    ppi_id: int,
+    protein1_id: int,
+    protein2_id: int,
+):
+    """
+    Get weight by protein
+    """
+    r = Redis(host="redis", port=6379, db=3)
+    _key = f"{protein1_id}-{protein2_id}-{ppi_id}"
+    data = r.get(_key)
+    if not data:
+        return {"weight": -1}
+    _data = json.loads(data.decode("utf-8"))
+    _weight = _data["weight"]
+    r.close()
+    return {"weight": _weight}
+
+
+def get_weight_by_interactions_list(
+    interactions_key: list,
+):
+    """
+    Get weight by protein
+    """
+    r = Redis(host="redis", port=6379, db=3)
+    data = r.mget(interactions_key)
+    if not data:
+        return None
+    r.close()
+    return data
+
+
 # POST
 @router.post("/ppi/")
 def get_or_create_ppi_graph_from_file(
@@ -116,22 +149,3 @@ def get_all_ppi_graph(
             }
         )
     return response
-
-
-@router.get("/ppi/proteins/")
-def get_weight_by_protein(
-    ppi_id: int,
-    protein1_id: int,
-    protein2_id: int,
-):
-    """
-    Get weight by protein
-    """
-    r = Redis(host="redis", port=6379, db=3)
-    _key = f"{protein1_id}-{protein2_id}-{ppi_id}"
-    data = r.get(_key)
-    if not data:
-        return {"weight": -1}
-    _data = json.loads(data.decode("utf-8"))
-    _weight = _data["weight"]
-    return {"weight": _weight}

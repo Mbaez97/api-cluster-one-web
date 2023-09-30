@@ -1,6 +1,7 @@
 """Execute ClusterOne algorithm and return the data in json format."""
 import time
 import random
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query  # noqa F401 # type: ignore
 from fastapi.responses import StreamingResponse  # noqa F401 # type: ignore
@@ -12,7 +13,10 @@ from app.api.utils import execute_cluster_one
 from uuid import uuid4
 from app.models import Layout
 from app.taskapp.celery import async_creation_edge_for_cluster
-from app.api.api_v1.endpoints.graph import get_weight_by_protein
+from app.api.api_v1.endpoints.graph import (  # noqa F401 # type: ignore
+    get_weight_by_protein,
+    get_weight_by_interactions_list,
+)  # noqa F401 # type: ignore
 
 router = APIRouter()
 
@@ -89,31 +93,59 @@ def process_data(data):
                         }
                     }
                     data[i]["edges"].append(_edge_protein_complex)
-                    # Eliminar los edges que ya no son necesarios.
-                    for edge in data[i]["edges"]:
-                        source, target = (
-                            edge["data"]["source"],
-                            edge["data"]["target"],
-                        )
-                        if source == target:
-                            data[i]["edges"].remove(edge)
     for cluster in data:
+        interactions_cluster = []
+        pop_index_edges = []
         for edge in cluster["edges"]:
-            if edge["data"]["label"] == "Overlapping":
+            if (
+                edge["data"]["label"] == "Overlapping"
+                or edge["data"]["label"] == ""  # noqa
+            ):  # noqa
                 edge["data"]["label"] = ""
                 continue
-            _weight = get_weight_by_protein(
-                protein1_id=edge["data"]["source"],
-                protein2_id=edge["data"]["target"],
-                ppi_id=cluster["ppi_id"],
-            )
-            if _weight["weight"] == -1:
-                # pop edge
-                cluster["edges"].remove(edge)
-            elif float(_weight["weight"]) == 0.0:
-                print("LOGS: Edge with weight 0")
-            else:
-                edge["data"]["label"] = f"{_weight['weight']}"
+            protein1_id = edge["data"]["source"]
+            protein2_id = edge["data"]["target"]
+            ppi_id = cluster["ppi_id"]
+            _key = f"{protein1_id}-{protein2_id}-{ppi_id}"
+            interactions_cluster.append(_key)
+        _interactions = get_weight_by_interactions_list(interactions_cluster)
+        if _interactions:
+            # Exclude None values
+            _interactions = [
+                json.loads(interaction.decode("utf-8"))
+                for interaction in _interactions
+                if interaction
+            ]
+            for index, edge in enumerate(cluster["edges"]):
+                if (
+                    edge["data"]["label"] == "Overlapping"
+                    or edge["data"]["label"] == ""
+                ):  # noqa
+                    edge["data"]["label"] = ""
+                    continue
+                protein1_id = edge["data"]["source"]
+                protein2_id = edge["data"]["target"]
+                ppi_id = cluster["ppi_id"]
+                _key = f"{protein1_id}-{protein2_id}-{ppi_id}"
+                _interaction = [
+                    interaction
+                    for interaction in _interactions
+                    if interaction["key"] == _key
+                ]
+                if _interaction:
+                    _interaction = _interaction[0]
+                    if _interaction["weight"] == 0:
+                        edge["data"]["label"] = ""
+                    else:
+                        edge["data"]["label"] = _interaction["weight"]
+                else:
+                    pop_index_edges.append(index)
+        # Remove edges
+        cluster["edges"] = [
+            e
+            for i, e in enumerate(cluster["edges"])
+            if i not in pop_index_edges  # noqa
+        ]
     end_time = time.time()
     print(f"LOGS: Processing data time: {(end_time - star_time):.4f} seconds")
     return data
@@ -198,6 +230,7 @@ def run_cluster_one(
                 _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
         else:
             _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
+
         # Proteins
         _initial_protein_uses_time = time.time()
         _proteins_obj = []
