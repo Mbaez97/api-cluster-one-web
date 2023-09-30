@@ -70,7 +70,6 @@ def async_creation_edge_for_cluster(
                             "refers_to": cluster_id,
                         },
                     )
-                    print("LOGS: Edge added to cluster")
                 else:
                     print("LOGS: Edge already in cluster")
         except Exception as e:
@@ -86,7 +85,7 @@ def async_insert_redis(
 ) -> str:
     db = SessionLocal()
     _ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=ppi_id)
-    ppi_dataset = lee_txt(_ppi_obj.data, delimiter="\t")
+    ppi_dataset = lee_txt(_ppi_obj.data)
     r = Redis(host="redis", port=6379, db=3)
     _objects = []
     for data in ppi_dataset:
@@ -98,6 +97,8 @@ def async_insert_redis(
         protein_2 = crud.protein.get_by_name(db, name=_data[1])
         try:
             _weight = float(_data[2])
+        except IndexError:
+            _weight = 0.0
         except Exception as e:
             print(e)
             _weight = 0.0
@@ -112,14 +113,11 @@ def async_insert_redis(
                     "protein_a": protein_1.name,
                     "protein_b": protein_2.name,
                     "weight": _weight,
+                    "key": f"{protein_1.id}-{protein_2.id}-{_ppi_obj.id}",
                 }
             ),
         }
         _objects.append(_redis_obj)
-        # r.set(  # type: ignore
-        #     _redis_obj["key"],
-        #     _redis_obj["json"],
-        # )
     r.mset({obj["key"]: obj["json"] for obj in _objects})
     r.close()
     db.close()

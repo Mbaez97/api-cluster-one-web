@@ -19,6 +19,6 @@ def lee_csv(archivo, delimiter=","):
         return list(reader)[1:]
 
 
-def lee_txt(archivo, delimiter="\n"):
+def lee_txt(archivo):
     with open(archivo, "r") as in_file:
         return in_file.readlines()
