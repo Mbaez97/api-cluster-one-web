@@ -123,7 +123,6 @@ def execute_enrichment_complex(db, complex: int, gene_set_library: str):
 
 # Main
 if __name__ == "__main__":
-    # Get all clusters
     db = SessionLocal()
     test_cluster = 25005
     gene_set_libraries = [
