@@ -2,7 +2,7 @@
 
 from app import schemas
 from app.crud.crud_base import CRUDBase
-from app.models import PPIGraph, ClusterGraph
+from app.models import PPIGraph, ClusterGraph, EdgeClusterInteraction
 
 """crud ppi graph"""
 
@@ -66,6 +66,18 @@ class CRUDClusterGraph(
             )
             .first()
         )
+
+    def get_proteins_by_cluster(self, db, *, id: int) -> list:
+        """Get proteins by cluster"""
+        cluster = db.query(ClusterGraph).filter(ClusterGraph.id == id).all()
+        edges = cluster[0].edges
+        proteins = []
+        for edge in edges:
+            if edge.protein_a not in proteins:
+                proteins.append(edge.protein_a)
+            if edge.protein_b not in proteins:
+                proteins.append(edge.protein_b)
+        return proteins
 
     def create_cluster(self, db, *, obj: dict) -> ClusterGraph:
         """Create cluster"""
