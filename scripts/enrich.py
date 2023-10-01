@@ -23,7 +23,6 @@ def parse_complex_to_enrichr(db, complex: int):
     complex = crud_complex.get_proteins_by_cluster(db, id=complex)  # type: ignore # noqa
     complex = [str(protein.name) for protein in complex]  # type: ignore
     complex = "\n".join(complex)
-    print(complex)
     return complex
 
 
@@ -37,13 +36,15 @@ def add_list(genes_str: list, description: str):
         }
     """
     url = ENRICHR_BASE_URL + "addList"
-    payload = {"list": genes_str, "description": (None, description)}
-    response = requests.post(url, json=payload)
+    files = {"list": (None, genes_str), "description": (None, description)}
+    response = requests.post(url, files=files)
     if not response.ok:
         print(response.status_code)
+        print(response.text)
         raise Exception("Error adding gene list")
+
     data = json.loads(response.text)
-    return data
+    return data["userListId"]
 
 
 def view_added_gene_set(user_list_id: int):
