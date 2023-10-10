@@ -65,13 +65,14 @@ def get_or_create_ppi_graph_from_file(
         _file_path = f"/app/app/media/ppi/{file.filename}"
         with open(_file_path, "wb") as buffer:
             buffer.write(file.file.read())
+            _size = list(buffer)
             buffer.close()
         _layout = db.query(Layout).filter(Layout.name == "random").first()
         _data = {
             "external_weight": 0,
             "internal_weight": 0,
             "density": 0,
-            "size": 0,
+            "size": len(_size),
             "quality": 0,
             "layout": _layout,
             "data": _file_path,
@@ -99,7 +100,7 @@ def get_or_create_ppi_graph_from_file(
             "name": _ppi_obj.name,
             "data": _ppi_obj.data,
             "density": _ppi_obj.density,
-            "size": _ppi_obj.size,
+            "size": len(_size),
             "preloaded": _ppi_obj.preloaded,
         }
         print("LOGS: PPI already exists")
@@ -121,7 +122,7 @@ def update_redis_preloaded(
         raise HTTPException(status_code=404, detail="PPI not found")
     async_insert_redis.delay(_ppi_obj.id)
     print("LOGS: PPI updated")
-    return {"status": "ok"}
+    return {"status": "ok", "size": _ppi_obj.size}
 
 
 # GET

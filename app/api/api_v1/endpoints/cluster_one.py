@@ -90,11 +90,13 @@ def process_data(data):
                             "source": data[i]["nodes"][j]["data"]["id"],
                             "target": node_protein_complex["data"]["id"],
                             "label": "Overlapping",
+                            "type": "overlapping",
                         }
                     }
                     data[i]["edges"].append(_edge_protein_complex)
     for cluster in data:
         interactions_cluster = []
+        alternative_interactions = []
         pop_index_edges = []
         for edge in cluster["edges"]:
             if (
@@ -139,7 +141,42 @@ def process_data(data):
                     else:
                         edge["data"]["label"] = _interaction["weight"]
                 else:
+                    _inverse_key = f"{protein2_id}-{protein1_id}-{ppi_id}"
+                    alternative_interactions.append(_inverse_key)
                     pop_index_edges.append(index)
+            _alternative_interactions = get_weight_by_interactions_list(
+                alternative_interactions
+            )
+            if _alternative_interactions:
+                # Exclude None values
+                _alternative_interactions = [
+                    json.loads(interaction.decode("utf-8"))
+                    for interaction in _alternative_interactions
+                    if interaction
+                ]
+                for index, edge in enumerate(cluster["edges"]):
+                    if index not in pop_index_edges:
+                        continue
+                    protein1_id = edge["data"]["source"]
+                    protein2_id = edge["data"]["target"]
+                    ppi_id = cluster["ppi_id"]
+                    _key = f"{protein2_id}-{protein1_id}-{ppi_id}"
+                    _interaction = [
+                        interaction
+                        for interaction in _alternative_interactions
+                        if interaction["key"] == _key
+                    ]
+                    if _interaction:
+                        # Sacar index del pop_index_edges
+                        pop_index_edges.remove(index)
+                        _interaction = _interaction[0]
+                        if _interaction["weight"] == 0:
+                            edge["data"]["label"] = ""
+                        else:
+                            edge["data"]["label"] = _interaction["weight"]
+                    else:
+                        edge["data"]["label"] = ""
+
         # Remove edges
         cluster["edges"] = [
             e
