@@ -68,7 +68,7 @@ def get_proteins_interactions(
 @router.get("/{protein_name}/uniprot/")
 def get_data_from_uniprot(
     protein_name: str,
-    size: int = Query(100, description="Size of the response", gt=0),
+    size: int = Query(-1, description="Size of the response"),
     offset: int = Query(0, description="Offset of the response", ge=0),
 ):
     """
