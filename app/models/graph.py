@@ -38,6 +38,8 @@ class PPIGraph(AbstractGraph):
         "ClusterOneLogParams",
         back_populates="ppi_graph",
     )
+    proteome_id = Column(Integer, ForeignKey("proteome.id"), nullable=True)
+    proteome = relationship("Proteome", back_populates="ppi_graph")
 
 
 class ClusterGraph(AbstractGraph):

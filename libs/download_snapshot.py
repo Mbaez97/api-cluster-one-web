@@ -5,7 +5,6 @@ which will to be used for prediction.
 """
 
 import os
-import zipfile
 import gzip
 import sys
 import datetime
@@ -13,7 +12,6 @@ import time
 import logging
 import urllib.request
 import shutil
-import tarfile
 import requests  # type: ignore
 import json
 
@@ -40,84 +38,6 @@ class DownloadSnapshot:
         """
         if not os.path.exists(self.snapshot_subdirectory):
             os.makedirs(self.snapshot_subdirectory)
-
-    def download_uniprot_mapping(self):
-        """
-        Downloads the mapping between various protein ID types and UniProt IDs.
-        """
-        url = (
-            "ftp://ftp.uniprot.org/pub/databases/uniprot/"
-            "current_release/knowledgebase/idmapping/"
-            "idmapping_selected.tab.gz"
-        )
-        local_file_name = "idmapping_selected.tab.gz"
-        local_uncompressed_data = os.path.join(
-            self.snapshot_subdirectory, "idmapping_selected.tab"
-        )
-        if not os.path.isfile(local_uncompressed_data) or self.overwrite:
-            local_compressed_data = self.__download_file(url, local_file_name)
-            self.__gunzip_file(local_compressed_data, local_uncompressed_data)
-
-    def download_swissprot(self):
-        """
-        Downloads the Swiss-Prot protein sequence data.
-        """
-        url = (
-            "ftp://ftp.uniprot.org/pub/databases/uniprot/"
-            "current_release/knowledgebase/complete/"
-            "uniprot_sprot.fasta.gz"
-        )
-        local_file_name = "swissprot.gz"
-        local_uncompressed_data = os.path.join(
-            self.snapshot_subdirectory, "swissprot.fasta"
-        )
-        if not os.path.isfile(local_uncompressed_data) or self.overwrite:
-            local_compressed_data = self.__download_file(url, local_file_name)
-            self.__gunzip_file(local_compressed_data, local_uncompressed_data)
-
-    def download_trembl(self):
-        """
-        Downloads the TrEMBL protein sequence data.
-        """
-        url = (
-            "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/"
-            "knowledgebase/complete/uniprot_trembl.fasta.gz"
-        )
-        local_file_name = "trembl.gz"
-        local_uncompressed_data = os.path.join(
-            self.snapshot_subdirectory, "trembl.fasta"
-        )
-        if not os.path.isfile(local_uncompressed_data) or self.overwrite:
-            local_compressed_data = self.__download_file(url, local_file_name)
-            self.__gunzip_file(local_compressed_data, local_uncompressed_data)
-
-    def download_species_list(self):
-        """
-        Downloads the list of species available in UniProt.
-        """
-        url = (
-            "ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/"
-            "knowledgebase/complete/docs/speclist.txt"
-        )
-        local_file_name = "species_list.txt"
-        self.__download_file(url, local_file_name)
-
-    def download_organism_info(self):
-        # TODO: implement a version with pagination
-        url = "https://rest.uniprot.org/taxonomy/stream?compressed=true&fields=id%2Ccommon_name%2Cscientific_name%2Clineage%2Cparent&format=tsv&query=%28%2A%29"
-        local_compressed_data = os.path.join(
-            self.snapshot_subdirectory, "org_info.tab.gz"
-        )
-        local_uncompressed_data = os.path.join(
-            self.snapshot_subdirectory, "org_info.tab"
-        )
-        if not os.path.exists(local_uncompressed_data) or self.overwrite:
-            with requests.get(url, stream=True) as request:
-                request.raise_for_status()
-                with open(local_compressed_data, "wb") as f:
-                    for chunk in request.iter_content(chunk_size=2**20):
-                        f.write(chunk)
-            self.__gunzip_file(local_compressed_data, local_uncompressed_data)
 
     def download_proteomes(self):
         out = open(os.path.join(self.snapshot_subdirectory, "proteomes.tab"), "w")
@@ -199,64 +119,6 @@ class DownloadSnapshot:
         local_file_name = "go-basic.obo"
         self.__download_file(url, local_file_name)
 
-    def download_taxonomy_dump(self):
-        url = "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz"
-        local_file_name = "taxdump.tar.gz"
-        local_uncompressed_data = os.path.join(self.snapshot_subdirectory, "names.dmp")
-        if not os.path.isfile(local_uncompressed_data) or self.overwrite:
-            local_compressed_data = self.__download_file(url, local_file_name)
-            self.__untargz_target(
-                local_compressed_data, local_uncompressed_data, "names.dmp"
-            )
-
-    @staticmethod
-    def __unzip_file(
-        full_path_zip_file, file_name, full_path_uncompressed_file, remove=True
-    ):
-        """Unzips a text file given its `full_path_zip_file` into the
-        `full_path_uncompressed_file`.
-        Only the `file_name` will be uncompressed. If `remove` is
-        True, the compressed file will be removed afterwards.
-        """
-        with open(full_path_zip_file, "rb") as fh:
-            z = zipfile.ZipFile(fh)
-            outpath = os.path.dirname(full_path_uncompressed_file)
-            for name in z.namelist():
-                if file_name not in name:
-                    continue
-                z.extract(name, outpath)
-                full_new_name = os.path.join(outpath, name)
-                if full_new_name != full_path_uncompressed_file:
-                    os.rename(full_new_name, full_path_uncompressed_file)
-        if remove:
-            os.remove(full_path_zip_file)
-
-    @staticmethod
-    def __untargz_target(
-        full_path_targz_file, full_path_uncompressed_file, target_file, remove=True
-    ):
-        """Extracts the =`target_file` from the `full_path_targz_file`
-        tar.gz provided into `full_path_uncompressed_file`. If `remove` is
-        True, the compressed file will be removed, as well.
-        """
-        # from http://stackoverflow.com/a/37753786/943138
-        with tarfile.open(full_path_targz_file, "r|*") as tar:
-            counter = 0
-            for member in tar:
-                if member.isfile():
-                    filename = os.path.basename(member.name)
-                    if filename != target_file:  # do your check
-                        continue
-                    with open(full_path_uncompressed_file, "wb") as output:
-                        shutil.copyfileobj(tar.fileobj, output, member.size)
-                    break  # got our file
-                counter += 1
-                if counter % 1000 == 0:
-                    tar.members = []  # free ram... yes we have to do this manually
-            tar.members = []  # free ram... yes we have to do this manually
-        if remove:
-            os.remove(full_path_zip_file)
-
     @staticmethod
     def __gunzip_file(
         full_path_gzip_file, full_path_uncompressed_file, remove=True
@@ -292,29 +154,6 @@ class DownloadSnapshot:
         os.rename(temp_file_name, full_path_file)
         return full_path_file
 
-    def download_taxonomy(self):
-        """Downloads the taxonomy data from NCBI"""
-        taxdump = os.path.join(self.snapshot_subdirectory, "taxdump.tar.gz")
-        urllib.request.urlretrieve(
-            "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz", taxdump
-        )
-        taxcat = os.path.join(self.snapshot_subdirectory, "taxcat.tar.gz")
-        urllib.request.urlretrieve(
-            "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxcat.tar.gz", taxcat
-        )
-        taxo_dir = os.path.join(self.snapshot_subdirectory, "taxonomy")
-        if not os.path.exists(taxo_dir):
-            os.makedirs(taxo_dir)
-
-        import tarfile
-
-        ttaxdump = tarfile.open(taxdump, "r:gz")
-        ttaxdump.extractall(taxo_dir)
-        ttaxcat = tarfile.open(taxcat, "r:gz")
-        ttaxcat.extractall(taxo_dir)
-        os.remove(taxdump)
-        os.remove(taxcat)
-
 
 def main(args):
     if not os.path.exists(args.directory):
@@ -335,8 +174,6 @@ def main(args):
 
         download_snapshot = DownloadSnapshot(
             snapshot_subdirectory,
-            args.dip_user,
-            args.dip_pass,
             overwrite=args.overwrite,
         )
         logger = logging.getLogger("download_snapshot")
@@ -357,9 +194,6 @@ def main(args):
 
         logger.info("downloading Gene Ontology file")
         download_snapshot.download_gene_ontology()
-
-        logger.info("downloading proteomes")
-        download_snapshot.download_proteomes()
 
 
 if __name__ == "__main__":

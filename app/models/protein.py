@@ -50,3 +50,4 @@ class Proteome(BaseWithDatetime):
     url_info = Column(String(255), nullable=True)
     fasta_file_path = Column(String(255), nullable=True)
     uniprot_proteome_id = Column(String(255), nullable=True)
+    ppi_graph = relationship("PPIGraph", back_populates="proteome")
