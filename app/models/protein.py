@@ -37,3 +37,16 @@ class OverlappingProtein(BaseWithDatetime):
         ClusterGraph,
         back_populates="protein_complexes",
     )
+
+
+class Proteome(BaseWithDatetime):
+    @declared_attr
+    def __tablename__(cls) -> str:
+        return "proteome"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    url_info = Column(String(255), nullable=True)
+    fasta_file_path = Column(String(255), nullable=True)
+    uniprot_proteome_id = Column(String(255), nullable=True)
