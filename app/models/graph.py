@@ -7,6 +7,7 @@ from sqlalchemy.orm import relationship
 # Models
 from app.db.base_class import BaseWithDatetime
 from app.models.layout import Layout
+from app.models.enrichment import Enrichment
 
 
 class AbstractGraph(BaseWithDatetime):
@@ -61,7 +62,12 @@ class ClusterGraph(AbstractGraph):
     data = Column(String(255), nullable=True)
     is_complex = Column(Boolean, nullable=True, default=False)
     enrichment_id = Column(Integer, ForeignKey("enrichment.id"), nullable=True)
-    enrichment = relationship("Enrichment", back_populates="cluster_graph")
+    # enrichment = relationship(
+    #     Enrichment,
+    #     back_populates="cluster_graph",
+    #     uselist=False,
+    #     foreign_keys=[enrichment_id],
+    # )  # noqa
     cluster_one_log_params_id = Column(
         Integer, ForeignKey("cluster_one_log_params.id"), nullable=True
     )

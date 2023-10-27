@@ -5,7 +5,6 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 
 from app.db.base_class import BaseWithDatetime
-from app.models.graph import ClusterGraph
 
 
 class GoTerms(BaseWithDatetime):
@@ -46,7 +45,9 @@ class Enrichment(BaseWithDatetime):
         back_populates="enrichment",
     )
     cluster_graph_id = Column(Integer, ForeignKey("cluster_graph.id"), nullable=False)
-    cluster_graph = relationship(
-        ClusterGraph,
-        back_populates="enrichment",
-    )
+    # cluster_graph = relationship(
+    #     "ClusterGraph",
+    #     back_populates="enrichment",
+    #     remote_side=[cluster_graph_id],
+    #     foreign_keys=[cluster_graph_id],
+    # )
