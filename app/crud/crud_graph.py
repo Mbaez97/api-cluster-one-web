@@ -2,7 +2,7 @@
 
 from app import schemas
 from app.crud.crud_base import CRUDBase
-from app.models import PPIGraph, ClusterGraph, EdgeClusterInteraction
+from app.models import PPIGraph, ClusterGraph
 
 """crud ppi graph"""
 
