@@ -23,21 +23,21 @@ from app import models as model  # noqa
 # Or only part of schema
 desc = sadisplay.describe(
     [
-        model.ClusterGraph,
-        model.ClusterOneLogParams,
-        model.Edge,
-        model.EdgePPIInteraction,
-        model.Layout,
-        model.PPIGraph,
-        model.Protein,
-        model.Proteome,
-        model.EdgeClusterInteraction,
+        # model.ClusterGraph,
+        # model.ClusterOneLogParams,
+        # model.Edge,
+        # model.EdgePPIInteraction,
+        # model.Layout,
+        # model.PPIGraph,
+        # model.Protein,
+        # model.Proteome,
+        # model.EdgeClusterInteraction,
         model.Enrichment,
         model.GoTerms,
-        model.OverlappingProtein,
+        # model.OverlappingProtein,
     ]
 )
-with codecs.open("no_overlapping_protein.plantuml", "w", encoding="utf-8") as f:  # noqa
+with codecs.open("enrichment_module.plantuml", "w", encoding="utf-8") as f:  # noqa
     f.write(sadisplay.plantuml(desc))
-with codecs.open("no_overlapping_protein.dot", "w", encoding="utf-8") as f:
+with codecs.open("enrichment_module.dot", "w", encoding="utf-8") as f:
     f.write(sadisplay.dot(desc))
