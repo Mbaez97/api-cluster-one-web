@@ -1,0 +1,223 @@
+@startuml
+
+skinparam defaultFontName Courier
+
+Class AbstractGraph {
+    INTEGER   ★ id         
+    INTEGER   ☆ layout_id  
+    DATETIME  ⚪ created_at 
+    DATETIME  ⚪ deleted_at 
+    FLOAT     ⚪ density    
+    INTEGER   ⚪ size       
+    DATETIME  ⚪ updated_at 
+    +         layout       
+    INDEX[id] » ix_graph_id
+}
+
+Class ClusterGraph {
+    INTEGER      ★ id                       
+    INTEGER      ★ id                       
+    INTEGER      ☆ cluster_one_log_params_id
+    INTEGER      ☆ enrichment_id            
+    INTEGER      ☆ layout_id                
+    DATETIME     ⚪ created_at               
+    VARCHAR[255] ⚪ data                     
+    DATETIME     ⚪ deleted_at               
+    FLOAT        ⚪ density                  
+    FLOAT        ⚪ external_weight          
+    FLOAT        ⚪ internal_weight          
+    BOOLEAN      ⚪ is_complex               
+    FLOAT        ⚪ p_value                  
+    FLOAT        ⚪ quality                  
+    INTEGER      ⚪ size                     
+    DATETIME     ⚪ updated_at               
+    +            cluster_one_log_params     
+    +            edges                      
+    +            layout                     
+    +            protein_complexes          
+}
+
+Class ClusterOneLogParams {
+    INTEGER   ★ id                          
+    INTEGER   ☆ ppi_graph_id                
+    DATETIME  ⚪ created_at                  
+    DATETIME  ⚪ deleted_at                  
+    FLOAT     ⚪ max_overlap                 
+    FLOAT     ⚪ min_density                 
+    INTEGER   ⚪ min_size                    
+    FLOAT     ⚪ penalty                     
+    DATETIME  ⚪ updated_at                  
+    +         cluster_graph                 
+    +         ppi_graph                     
+    INDEX[id] » ix_cluster_one_log_params_id
+}
+
+Class Edge {
+    INTEGER   ★ id                
+    INTEGER   ☆ protein_a_id      
+    INTEGER   ☆ protein_b_id      
+    DATETIME  ⚪ created_at        
+    DATETIME  ⚪ deleted_at        
+    INTEGER   ⚪ direction         
+    DATETIME  ⚪ updated_at        
+    +         cluster_interactions
+    +         ppi_interactions    
+    +         protein_a           
+    +         protein_b           
+    INDEX[id] » ix_edge_id        
+}
+
+Class EdgeClusterInteraction {
+    INTEGER   ★ id                            
+    INTEGER   ☆ cluster_graph_id              
+    INTEGER   ☆ edge_id                       
+    DATETIME  ⚪ created_at                    
+    DATETIME  ⚪ deleted_at                    
+    DATETIME  ⚪ updated_at                    
+    FLOAT     ⚪ weight                        
+    INDEX[id] » ix_edge_cluster_interaction_id
+}
+
+Class EdgePPIInteraction {
+    INTEGER   ★ id                        
+    INTEGER   ☆ edge_id                   
+    INTEGER   ☆ ppi_interaction_id        
+    DATETIME  ⚪ created_at                
+    DATETIME  ⚪ deleted_at                
+    DATETIME  ⚪ updated_at                
+    FLOAT     ⚪ weight                    
+    INDEX[id] » ix_edge_ppi_interaction_id
+}
+
+Class Enrichment {
+    INTEGER      ★ id              
+    INTEGER      ☆ cluster_graph_id
+    INTEGER      ☆ go_terms_id     
+    DATETIME     ⚪ created_at      
+    DATETIME     ⚪ deleted_at      
+    VARCHAR[255] ⚪ name            
+    TEXT         ⚪ notes           
+    FLOAT        ⚪ p_value         
+    INTEGER      ⚪ state           
+    DATETIME     ⚪ updated_at      
+    +            go_terms          
+    INDEX[id]    » ix_enrichment_id
+}
+
+Class GoTerms {
+    INTEGER      ★ id            
+    DATETIME     ⚪ created_at    
+    DATETIME     ⚪ deleted_at    
+    TEXT         ⚪ description   
+    VARCHAR[2]   ⚪ domain        
+    VARCHAR[255] ⚪ term          
+    DATETIME     ⚪ updated_at    
+    VARCHAR[255] ⚪ url_info      
+    +            enrichment      
+    INDEX[id]    » ix_go_terms_id
+}
+
+Class Layout {
+    INTEGER      ★ id                 
+    BOOLEAN      ⚪ animated           
+    DATETIME     ⚪ created_at         
+    DATETIME     ⚪ deleted_at         
+    INTEGER      ⚪ max_simulation_time
+    VARCHAR[255] ⚪ name               
+    FLOAT        ⚪ node_spacing       
+    BOOLEAN      ⚪ randomize          
+    DATETIME     ⚪ updated_at         
+    +            graph                
+    INDEX[id]    » ix_layout_id       
+}
+
+Class OverlappingProtein {
+    INTEGER      ★ id                       
+    INTEGER      ☆ cluster_graph_id         
+    DATETIME     ⚪ created_at               
+    DATETIME     ⚪ deleted_at               
+    TEXT         ⚪ description              
+    BOOLEAN      ⚪ is_important             
+    VARCHAR[255] ⚪ name                     
+    TEXT         ⚪ notes                    
+    FLOAT        ⚪ score                    
+    DATETIME     ⚪ updated_at               
+    VARCHAR[255] ⚪ url_info                 
+    +            cluster_graph              
+    INDEX[id]    » ix_overlapping_protein_id
+}
+
+Class PPIGraph {
+    INTEGER      ★ id                  
+    INTEGER      ★ id                  
+    INTEGER      ☆ layout_id           
+    INTEGER      ☆ proteome_id         
+    DATETIME     ⚪ created_at          
+    VARCHAR[255] ⚪ data                
+    DATETIME     ⚪ deleted_at          
+    FLOAT        ⚪ density             
+    VARCHAR[255] ⚪ name                
+    BOOLEAN      ⚪ preloaded           
+    INTEGER      ⚪ size                
+    DATETIME     ⚪ updated_at          
+    +            cluster_one_log_params
+    +            edge                  
+    +            layout                
+    +            proteome              
+}
+
+Class Protein {
+    INTEGER      ★ id           
+    DATETIME     ⚪ created_at   
+    DATETIME     ⚪ deleted_at   
+    TEXT         ⚪ description  
+    VARCHAR[255] ⚪ name         
+    FLOAT        ⚪ score        
+    DATETIME     ⚪ updated_at   
+    VARCHAR[255] ⚪ url_info     
+    INDEX[id]    » ix_protein_id
+}
+
+Class Proteome {
+    INTEGER      ★ id                 
+    DATETIME     ⚪ created_at         
+    DATETIME     ⚪ deleted_at         
+    TEXT         ⚪ description        
+    VARCHAR[255] ⚪ fasta_file_path    
+    VARCHAR[255] ⚪ name               
+    VARCHAR[255] ⚪ uniprot_proteome_id
+    DATETIME     ⚪ updated_at         
+    VARCHAR[255] ⚪ url_info           
+    +            ppi_graph            
+    INDEX[id]    » ix_proteome_id     
+}
+
+AbstractGraph <|-- ClusterGraph
+
+AbstractGraph <|-- PPIGraph
+
+AbstractGraph <--o Layout: layout_id
+
+ClusterGraph <--o Layout: layout_id
+
+ClusterGraph <--o Enrichment: enrichment_id
+
+ClusterGraph <--o ClusterOneLogParams: cluster_one_log_params_id
+
+Edge <--o Protein: protein_a_id
+
+Edge <--o Protein: protein_b_id
+
+EdgeClusterInteraction <--o Edge: edge_id
+
+EdgePPIInteraction <--o Edge: edge_id
+
+Enrichment <--o GoTerms: go_terms_id
+
+PPIGraph <--o Layout: layout_id
+
+PPIGraph <--o Proteome: proteome_id
+
+right footer generated by sadisplay v0.4.9
+
+@enduml
