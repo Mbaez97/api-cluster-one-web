@@ -119,6 +119,23 @@ class DownloadSnapshot:
         local_file_name = "go-basic.obo"
         self.__download_file(url, local_file_name)
 
+    def download_uniprot_mapping(self):
+        """
+        Downloads the mapping between various protein ID types and UniProt IDs.
+        """
+        url = (
+            "ftp://ftp.uniprot.org/pub/databases/uniprot/"
+            "current_release/knowledgebase/idmapping/"
+            "idmapping_selected.tab.gz"
+        )
+        local_file_name = "idmapping_selected.tab.gz"
+        local_uncompressed_data = os.path.join(
+            self.snapshot_subdirectory, "idmapping_selected.tab"
+        )
+        if not os.path.isfile(local_uncompressed_data) or self.overwrite:
+            local_compressed_data = self.__download_file(url, local_file_name)
+            self.__gunzip_file(local_compressed_data, local_uncompressed_data)
+
     @staticmethod
     def __gunzip_file(
         full_path_gzip_file, full_path_uncompressed_file, remove=True
