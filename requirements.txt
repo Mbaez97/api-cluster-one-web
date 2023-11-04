@@ -43,3 +43,4 @@ requests==2.31.0
 scipy==1.11.3
 
 sadisplay==0.4.9
+selenium==4.15.1
