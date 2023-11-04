@@ -1,8 +1,10 @@
 import logging
 from libs.golib.core.gene_ontology import GeneOntology
-from rich.progress import track  # type: ignore
-import scipy.stats as stats  # type: ignore
-import pandas as pd  # type: ignore
+from rich.progress import track
+import scipy.stats as stats
+import pandas as pd
+from libs.lib_manejo_csv import lee_csv
+
 
 logger = logging.getLogger("overrepresentation")
 logger.setLevel(logging.INFO)
@@ -35,11 +37,51 @@ def get_proteins_from_fasta_file(path):
     return proteins
 
 
+def get_mapping_to_uniprot_id() -> dict:
+    """
+    Returns a dictionary with the mapping from
+    the SGD protein id to the UniprotKB id
+    """
+    uniprot_mappings_ids = {}
+    for i in range(1, 18):
+        _name = (
+            "./uniprot_mapping/proteins_all_db_chunk" + str(i) + "_uniprot.csv"
+        )  # noqa: E501
+        try:
+            _data = lee_csv(_name)
+            for _prot in _data:
+                uniprot_mappings_ids[_prot[1]] = _prot[2]
+        except Exception as e:
+            print(e)
+            pass
+    return uniprot_mappings_ids
+
+
 def get_proteins_in_complexes(complexes):
+    _mapping = get_mapping_to_uniprot_id()
     proteins = set()
     for _, prots in complexes.items():
         proteins |= set(prots)
-    return list(proteins)
+    _proteins = []
+    for _prot in proteins:
+        try:
+            _proteins.append(_mapping[_prot])
+        except Exception as e:
+            print(e)
+            pass
+    return _proteins
+
+
+def mapping_to_uniprot_id(proteins):
+    _mapping = get_mapping_to_uniprot_id()
+    _proteins = []
+    for _prot in proteins:
+        try:
+            _proteins.append(_mapping[_prot])
+        except Exception as e:
+            print(e)
+            pass
+    return _proteins
 
 
 def run(
@@ -55,20 +97,23 @@ def run(
     logger.info(f"Parsing proteome fasta file {proteome_file}...")
     background = get_proteins_from_fasta_file(proteome_file)
     total_background = len(background)
+    logger.info(f"Found {total_background} proteins in the proteome")
 
     logger.info("Building Ontology in memory...")
     go = GeneOntology(obo=obo_file)
     go.build_ontology()
 
-    logger.info("Loading GO annotations for this proteome...")
-    go.load_gaf_file(goa_file, "overrep")
-    go.up_propagate_annotations("overrep")
-    annotations = go.annotations("overrep")
-
     logger.info("Processing Complexes file...")
     complexes = read_complexes(complexes_file, max_group_size)
     complexes_prots = get_proteins_in_complexes(complexes)
     num_complexes = len(complexes)
+    logger.info(f"Found {num_complexes} complexes")
+    print(complexes_prots)
+
+    logger.info("Loading GO annotations for this proteome...")
+    go.load_gaf_file(goa_file, "overrep")
+    go.up_propagate_annotations("overrep")
+    annotations = go.annotations("overrep")
 
     logger.info("Building unified annotations matrix...")
     all_prots = set(background) | set(complexes_prots)
@@ -81,6 +126,7 @@ def run(
     table_prots = table.columns.values
     num_hypotheses = table.shape[0]
 
+    breakpoint()
     # the background is shared for all complexes,
     # so we can pre-calculate the counts
     annotated_bg = list(set(background) & set(table_prots))
@@ -94,10 +140,16 @@ def run(
     for i, (complex_id, proteins) in track(
         enumerate(complexes.items()), description="Analyzing...", total=num_complexes
     ):
+        # Log progress
         perc = i / len(complexes)
         logger.info(
             f"Analyzing complex {i}/{len(complexes)}" f" ({perc * 100.0:.2f}%)) ..."
         )
+        proteins = mapping_to_uniprot_id(proteins)
+        logger.info(f"Complex {complex_id} has {len(proteins)} proteins")
+        print(proteins)
+
+        # Calculate the counts for this group
         total_group = len(proteins)
         annotated_gr_prots = list(set(proteins) & set(table_prots))
         group_counts = table[annotated_gr_prots].sum(axis=1)
@@ -154,8 +206,12 @@ if __name__ == "__main__":
         description="formats the raw output of blast into "
         "the homolog information for ProteoBOOSTER"
     )
-    parser.add_argument("proteome_file", help="Path to the proteome fasta file")  # noqa
-    parser.add_argument("complexes_file", help="File with complexes to analyze")  # noqa
+    parser.add_argument(
+        "proteome_file", help="Path to the proteome fasta file"
+    )  # noqa: E501
+    parser.add_argument(
+        "complexes_file", help="File with complexes to analyze"
+    )  # noqa: E501
     parser.add_argument("goa_file", help="path to GOA file")
     parser.add_argument("obo_file", help="path to go.obo file")
     parser.add_argument("output_file", help="path to write the results")
