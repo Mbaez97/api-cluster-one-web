@@ -60,6 +60,7 @@ class ClusterGraph(AbstractGraph):
     internal_weight = Column(Float, nullable=False, default=0.0)
     p_value = Column(Float, nullable=False, default=0.0)
     data = Column(String(255), nullable=True)
+    data_file_id = Column(Integer, nullable=True)
     is_complex = Column(Boolean, nullable=True, default=False)
     enrichment_id = Column(Integer, ForeignKey("enrichment.id"), nullable=True)
     # enrichment = relationship(

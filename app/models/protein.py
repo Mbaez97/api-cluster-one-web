@@ -17,7 +17,7 @@ class Protein(BaseWithDatetime):
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     url_info = Column(String(255), nullable=True)
-    score = Column(Float, nullable=False)
+    uniprotkb_id = Column(String(100), nullable=True)
 
 
 class OverlappingProtein(BaseWithDatetime):
