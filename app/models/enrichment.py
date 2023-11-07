@@ -19,6 +19,7 @@ class GoTerms(BaseWithDatetime):
     )
 
     id = Column(Integer, primary_key=True, index=True)
+    go_id = Column(String(255), nullable=False)
     term = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     url_info = Column(String(255), nullable=True)
@@ -42,7 +43,6 @@ class Enrichment(BaseWithDatetime):
     }
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
     p_value = Column(Float, nullable=False)
     notes = Column(Text, nullable=True)
     state = Column(Integer, nullable=False, default=1)

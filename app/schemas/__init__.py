@@ -10,4 +10,11 @@ from .protein import (  # noqa
 from .graph import GraphCreate, GraphUpdate, PPIGraphResponse  # noqa
 from .edge import EdgeCreate, EdgeUpdate  # noqa
 from .params import ParamsCreate, ParamsUpdate, ParamsResponse  # noqa
-from .enrichment import EnrichmentCreate, EnrichmentUpdate, EnrichmentBase  # noqa
+from .enrichment import (  # noqa
+    EnrichmentCreate,
+    EnrichmentUpdate,
+    EnrichmentBase,
+    GoTermsBase,
+    GoTermsCreate,
+    GoTermsUpdate,
+)  # noqa
