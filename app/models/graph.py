@@ -62,13 +62,6 @@ class ClusterGraph(AbstractGraph):
     data = Column(String(255), nullable=True)
     data_file_id = Column(Integer, nullable=True)
     is_complex = Column(Boolean, nullable=True, default=False)
-    enrichment_id = Column(Integer, ForeignKey("enrichment.id"), nullable=True)
-    # enrichment = relationship(
-    #     Enrichment,
-    #     back_populates="cluster_graph",
-    #     uselist=False,
-    #     foreign_keys=[enrichment_id],
-    # )  # noqa
     cluster_one_log_params_id = Column(
         Integer, ForeignKey("cluster_one_log_params.id"), nullable=True
     )

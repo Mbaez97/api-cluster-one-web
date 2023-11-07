@@ -1,5 +1,5 @@
 import sys
-import requests
+import requests  # noqa
 import json
 from pathlib import Path
 
@@ -39,9 +39,24 @@ DOMAINS = {
 def populate_from_file(
     file_path_enrichment_input: str, file_path_cluster_enrichment_output: str
 ):
+    """
+    Populates the database with data from two CSV files: one containing cluster data and the other containing
+    enrichment data. The function reads the CSV files, creates clusters and go_terms, and associates them with
+    each other in the database.
+
+    Args:
+        file_path_enrichment_input (str): The path to the CSV file containing the enrichment data.
+        file_path_cluster_enrichment_output (str): The path to the CSV file containing the cluster data.
+
+    Returns:
+        str: A string indicating that the function has completed successfully.
+    """
     db = SessionLocal()
+    print("LOGS: Parse data from file to create cluster")
     _clusters_inputs_enrichment = lee_csv(file_path_enrichment_input)
     _clusters_outputs_enrichment = lee_csv(file_path_cluster_enrichment_output)
+    print(file_path_enrichment_input)
+    print(file_path_cluster_enrichment_output)
     for _cluster_input in _clusters_inputs_enrichment:
         _file_id = int(_cluster_input[0])
         _size = _cluster_input[1]
@@ -60,7 +75,7 @@ def populate_from_file(
             "quality": _quality,
             "p_value": _pvalue,
             "elements": _elements,
-            "cluster_one_log_params_id": 3,
+            "cluster_one_log_params_id": 17,
         }
         _cluster = cluster_graph.get_cluster_by_elements(db, obj=_obj)
         print(f"LOGS: Parse data from file to create cluster: {_cluster.id}")
@@ -103,24 +118,12 @@ def populate_from_file(
                 },
             )
         print("Enrichment created")
-        # else:
-        #     enrichment.update(  # type: ignore
-        #         db,
-        #         db_obj=_enrichment,
-        #         obj_in={
-        #             "p_value": _go_term_field["p_value"],
-        #             "notes": "Automatically created from file",
-        #             "state": 3,
-        #             "go_terms_id": _go_term.id,
-        #             "cluster_graph_id": _cluster.id,
-        #         },
-        #     )
     db.close()
     return "Done"
 
 
 if __name__ == "__main__":
     populate_from_file(
-        "./enrichment_inputs/cluster_collins.csv",
-        "./enrichment_outputs/UP000002311_559292_collins.overrep",
+        "./enrichment_inputs/cluster_krogan2006extend.csv",
+        "./enrichment_outputs/UP000002311_559292_krogan2006extend.overrep",
     )
