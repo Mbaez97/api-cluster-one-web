@@ -75,7 +75,7 @@ def populate_from_file(
             "quality": _quality,
             "p_value": _pvalue,
             "elements": _elements,
-            "cluster_one_log_params_id": 17,
+            "cluster_one_log_params_id": 16,
         }
         _cluster = cluster_graph.get_cluster_by_elements(db, obj=_obj)
         print(f"LOGS: Parse data from file to create cluster: {_cluster.id}")
@@ -124,6 +124,6 @@ def populate_from_file(
 
 if __name__ == "__main__":
     populate_from_file(
-        "./enrichment_inputs/cluster_krogan2006extend.csv",
-        "./enrichment_outputs/UP000002311_559292_krogan2006extend.overrep",
+        "./enrichment_inputs/cluster_biogrid.csv",
+        "./enrichment_outputs/UP000002311_559292_biogrid.overrep",
     )
