@@ -3,6 +3,7 @@
 from app import schemas
 from app.crud.crud_base import CRUDBase
 from app.models import PPIGraph, ClusterGraph
+from libs.lib_manejo_csv import lee_csv
 
 """crud ppi graph"""
 
@@ -67,6 +68,14 @@ class CRUDClusterGraph(
             .first()
         )
 
+    def get_clusters_by_params(self, db, *, params_id: int) -> list:
+        """Get clusters by params"""
+        return (
+            db.query(ClusterGraph)
+            .filter(ClusterGraph.cluster_one_log_params_id == params_id)
+            .all()
+        )
+
     def get_proteins_by_cluster(self, db, *, id: int) -> list:
         """Get proteins by cluster"""
         cluster = db.query(ClusterGraph).filter(ClusterGraph.id == id).all()
@@ -78,6 +87,16 @@ class CRUDClusterGraph(
             if edge.protein_b not in proteins:
                 proteins.append(edge.protein_b)
         return proteins
+
+    def get_file_by_params(self, db, *, params_id: int) -> list:
+        """Get file by params"""
+        _cluster = (
+            db.query(ClusterGraph)
+            .filter(ClusterGraph.cluster_one_log_params_id == params_id)
+            .first()
+        )
+        _file_path = _cluster.data
+        return lee_csv(_file_path)
 
     def create_cluster(self, db, *, obj: dict) -> ClusterGraph:
         """Create cluster"""

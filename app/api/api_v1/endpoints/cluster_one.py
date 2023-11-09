@@ -236,13 +236,15 @@ def run_cluster_one(
     }
     _params_obj = crud.params.get_by_elements(db, obj=_params)
     _exist_params = False
+    cluster_one_execution_time = time.time()
     if not _params_obj:
         _params_obj = crud.params.create_params_logs(db, obj=_params)
+        response = execute_cluster_one(_command, file_name=_file_name)
         print("LOGS: Params created")
     else:
         _exist_params = True
-    response = execute_cluster_one(_command, file_name=_file_name)
-    cluster_one_execution_time = time.time()
+        print("LOGS: Params already exists")
+        response = crud.cluster_graph.get_file_by_params(db, params_id=_params_obj.id)  # type: ignore # noqa
     _clusters = []
     _total_protein_uses_time = 0
     _total_edge_uses_time = 0
