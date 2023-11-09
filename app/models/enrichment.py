@@ -12,11 +12,11 @@ class GoTerms(BaseWithDatetime):
     def __tablename__(cls) -> str:
         return "go_terms"
 
-    DOMINIO_CHOICES = (
-        ("BP", "Biological Process"),
-        ("CC", "Cellular Component"),
-        ("MF", "Molecular Function"),
-    )
+    DOMINIO_CHOICES = {
+        "BP": "Biological Process",
+        "CC": "Cellular Component",
+        "MF": "Molecular Function",
+    }
 
     id = Column(Integer, primary_key=True, index=True)
     go_id = Column(String(255), nullable=False)

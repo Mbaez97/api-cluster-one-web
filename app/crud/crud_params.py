@@ -2,7 +2,8 @@
 
 from app import schemas
 from app.crud.crud_base import CRUDBase
-from app.models import ClusterOneLogParams
+from app.models import ClusterOneLogParams, ClusterGraph
+from typing import List
 
 
 class CRUDClusterOneLogParams(
@@ -16,6 +17,14 @@ class CRUDClusterOneLogParams(
         """Get protein by id"""
         return (
             db.query(ClusterOneLogParams).filter(ClusterOneLogParams.id == id).first()  # type: ignore  # noqa
+        )
+
+    def get_clusters_by_log_id(self, db, *, id: int) -> List[ClusterGraph]:
+        """Get clusters by log id"""
+        return (
+            db.query(ClusterGraph)
+            .filter(ClusterGraph.cluster_one_log_params_id == id)
+            .all()
         )
 
     def get_by_elements(self, db, *, obj: dict) -> ClusterOneLogParams:

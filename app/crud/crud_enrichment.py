@@ -1,19 +1,19 @@
 from app import schemas
 from app.crud.crud_base import CRUDBase
 from app.models import Enrichment, GoTerms
+from typing import List
 
 """crud enrichment"""
 
 
 class CRUDEnrichment(CRUDBase[Enrichment, schemas.EnrichmentBase, schemas.EnrichmentUpdate]):  # type: ignore # noqa"
-    def get_by_cluster_id(self, db, *, cluster_id: int) -> Enrichment:
-        """Get by cluster id"""
+    def get_by_cluster_id(self, db, *, cluster_id: int) -> List[Enrichment]:
+        """Get all enrichemts by cluster id"""
         return (
             db.query(Enrichment)
             .filter(Enrichment.cluster_graph_id == cluster_id)
-            .filter(Enrichment.state == 3)
-            .first()
-        )
+            .all()  # noqa
+        )  # noqa
 
     def quick_creation(self, db, *, obj: dict) -> Enrichment:
         """Quick creation"""
@@ -38,6 +38,10 @@ class CRUDGoTerms(CRUDBase[GoTerms, schemas.GoTermsBase, schemas.GoTermsUpdate])
     def get_by_go_id(self, db, *, go_id: str) -> GoTerms:
         """Get by go_id"""
         return db.query(GoTerms).filter(GoTerms.go_id == go_id).first()
+
+    def get_by_id(self, db, *, id: int) -> GoTerms:
+        """Get by id"""
+        return db.query(GoTerms).filter(GoTerms.id == id).first()
 
     def quick_creation(self, db, *, obj: dict) -> GoTerms:
         """Quick creation"""
