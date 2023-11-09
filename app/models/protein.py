@@ -29,7 +29,7 @@ class OverlappingProtein(BaseWithDatetime):
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     url_info = Column(String(255), nullable=True)
-    score = Column(Float, nullable=False)
+    # score = Column(Float, nullable=False)
     is_important = Column(Boolean, nullable=False, default=False)
     notes = Column(Text, nullable=True)
     cluster_graph_id = Column(Integer, ForeignKey("cluster_graph.id"), nullable=False)

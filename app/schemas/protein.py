@@ -11,7 +11,7 @@ class ProteinBase(BaseModel):
     name: Optional[str]
     description: Optional[str]
     url_info: Optional[str]
-    score: Optional[float]
+    # score: Optional[float]
 
 
 class ProteinUpdate(ProteinBase):
@@ -32,7 +32,7 @@ class OverlappingProteinBase(BaseModel):
     name: Optional[str]
     description: Optional[str]
     url_info: Optional[str]
-    score: Optional[float]
+    # score: Optional[float]
     is_important: Optional[bool]
     notes: Optional[str]
     cluster_graph_id: Optional[int]
