@@ -51,3 +51,17 @@ def get_by_complex(
     if not enrichments:
         raise HTTPException(status_code=404, detail="Enrichment not found")
     return parse_enrichments(db, enrichments)
+
+
+@router.get("/params/")
+def get_params_scores(
+    db: Session = Depends(deps.get_db),
+    param_id: int = 1,
+):
+    """
+    Get params scores
+    """
+    params = crud.params.get_by_id(db, id=param_id)
+    if not params:
+        raise HTTPException(status_code=404, detail="Params not found")
+    return params
