@@ -188,6 +188,7 @@ def process_data(data):
     return data
 
 
+# TODO: Return the paramns_obj id with the response
 # ClusterOne API
 @router.post("/run/")
 def run_cluster_one(
@@ -360,6 +361,10 @@ def run_cluster_one(
             },
         )
     response_data = process_data(_clusters)
+    _response = {
+        "params_id": _params_obj.id,
+        "data": response_data,
+    }
     end_time = time.time()
     print(
         f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"  # noqa
@@ -367,7 +372,7 @@ def run_cluster_one(
     print(f"LOGS: Protein Uses Time: {(_total_protein_uses_time):.4f} seconds")
     print(f"LOGS: Edge Uses Time: {(_total_edge_uses_time):.4f} seconds")
     print(f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds")
-    return response_data
+    return _response
 
 
 @router.get("/{cluster_id}/csv")
