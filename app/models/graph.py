@@ -46,7 +46,7 @@ class PPIGraph(AbstractGraph):
 class ClusterGraph(AbstractGraph):
     """
     ClusterGraph model
-    I think this model represent all clusters detected by ClusterOne Algorithm.
+    This model represent all clusters detected by ClusterOne Algorithm.
     This is the complex man.
     """
 

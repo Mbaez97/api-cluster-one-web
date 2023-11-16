@@ -23,6 +23,15 @@ DATA_MAPPING = {
 
 
 def update_data_cluster_by_ppi(ppi_id: int):
+    """
+    Updates the data of all clusters associated with a given PPI graph ID.
+
+    Args:
+        ppi_id (int): The ID of the PPI graph.
+
+    Returns:
+        str: A message indicating that all clusters have been updated to the given PPI ID.
+    """
     db = SessionLocal()
     obj_params = {
         "min_size": None,
@@ -42,8 +51,31 @@ def update_data_cluster_by_ppi(ppi_id: int):
     return f"Update all clusters to {ppi_id}"
 
 
-update_data_cluster_by_ppi(15900)
-update_data_cluster_by_ppi(24275)
-update_data_cluster_by_ppi(24267)
-update_data_cluster_by_ppi(25433)
-update_data_cluster_by_ppi(22989)
+# update_data_cluster_by_ppi(15900)
+# update_data_cluster_by_ppi(24275)
+# update_data_cluster_by_ppi(24267)
+# update_data_cluster_by_ppi(25433)
+# update_data_cluster_by_ppi(22989)
+
+
+def diff_between_two_file(file_path_1: str, file_path_2: str):
+    file_1 = lee_csv(file_path_1)
+    file_2 = lee_csv(file_path_2)
+    _parse_file_1 = []
+    _parse_file_2 = []
+    for f in file_1:
+        _parse_file_1.append(f[0])
+    for f in file_2:
+        _parse_file_2.append(f[0])
+    file_1 = _parse_file_1
+    file_2 = _parse_file_2
+    print(len(file_1) - len(file_2))
+
+    _set_file_1 = set(file_1)
+    _set_file_2 = set(file_2)
+    diff = _set_file_1.difference(_set_file_2)
+    for d in diff:
+        print(d)
+
+
+diff_between_two_file("./complejos_collins_all.csv", "./complejos_collins_enrich.csv")
