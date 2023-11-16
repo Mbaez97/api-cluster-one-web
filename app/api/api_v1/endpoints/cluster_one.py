@@ -203,6 +203,17 @@ def run_cluster_one(
 ):
     """
     Get All Cluster data from ClusterOne
+
+    Parameters:
+    db (Session): SQLAlchemy database session
+    pp_id (int): PPI ID
+    min_size (int): Size of clusters
+    min_density (float): Density of clusters
+    max_overlap (float): Max overlap of clusters
+    penalty (float): Penalty of clusters
+
+    Returns:
+    dict: A dictionary containing the params_id and data of the clusters
     """
     # if not cluster_one_version:
     #     _base_command = "java -jar cluster_one-1.0.jar"
@@ -265,7 +276,7 @@ def run_cluster_one(
         }
 
         if _exist_params:
-            _cluster_obj = crud.cluster_graph.get_cluster_by_elements(db, obj=_obj)
+            _cluster_obj = crud.cluster_graph.get_cluster_by_elements(db, obj=_obj)  # type: ignore # noqa
             if not _cluster_obj:
                 _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
         else:
@@ -320,6 +331,7 @@ def run_cluster_one(
 
         _clusters.append(
             {
+                "params_id": _params_obj.id,
                 "code": str(_cluster_obj.id),
                 "size": _cluster_obj.size,
                 "density": _cluster_obj.density,
@@ -361,10 +373,10 @@ def run_cluster_one(
             },
         )
     response_data = process_data(_clusters)
-    _response = {
-        "params_id": _params_obj.id,
-        "data": response_data,
-    }
+    # _response_final = {
+    #     "params_id": _params_obj.id,
+    #     "data": response_data,
+    # }
     end_time = time.time()
     print(
         f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"  # noqa
@@ -372,7 +384,7 @@ def run_cluster_one(
     print(f"LOGS: Protein Uses Time: {(_total_protein_uses_time):.4f} seconds")
     print(f"LOGS: Edge Uses Time: {(_total_edge_uses_time):.4f} seconds")
     print(f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds")
-    return _response
+    return response_data
 
 
 @router.get("/{cluster_id}/csv")
