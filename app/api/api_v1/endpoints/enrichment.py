@@ -25,8 +25,8 @@ def parse_enrichments(db, enrichments: list):
                 "bar_charge": -1 * math.log(enrichment.p_value),
                 "notes": enrichment.notes,
                 "go_term": {
-                    # "go_id": _go_term.go_id + " || " + _go_term.term,
-                    "go_id": _go_term.go_id,
+                    "go_id": _go_term.go_id + " || " + _go_term.term,
+                    # "go_id": _go_term.go_id,
                     "term": _go_term.term,
                     "description": _go_term.description,
                     "url_info": _go_term.url_info,
