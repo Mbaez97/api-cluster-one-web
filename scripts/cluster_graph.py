@@ -5,7 +5,7 @@ HERE = Path(__file__).parent
 sys.path.append(str(HERE / "../"))
 
 from libs.lib_manejo_csv import lee_csv, lee_txt
-from app.crud import cluster_graph, params
+from app.crud import cluster_graph, params, enrichment
 from app.db.session import SessionLocal
 
 from config import Settings
@@ -58,24 +58,57 @@ def update_data_cluster_by_ppi(ppi_id: int):
 # update_data_cluster_by_ppi(22989)
 
 
-def diff_between_two_file(file_path_1: str, file_path_2: str):
-    file_1 = lee_csv(file_path_1)
-    file_2 = lee_csv(file_path_2)
-    _parse_file_1 = []
-    _parse_file_2 = []
-    for f in file_1:
-        _parse_file_1.append(f[0])
-    for f in file_2:
-        _parse_file_2.append(f[0])
-    file_1 = _parse_file_1
-    file_2 = _parse_file_2
-    print(len(file_1) - len(file_2))
+def populate_ora_score():
+    """
+    Populate the ORA score for all clusters.
+    """
+    db = SessionLocal()
+    _cl_params = params.get_all(db)
+    print(f"Total de CL1 parametros: {len(_cl_params)}")
+    for param in _cl_params:
+        _clusters = params.get_clusters_by_log_id(db, id=param.id)
+        _cantidad_total = len(_clusters)
+        _bp_clusters = []
+        _mf_clusters = []
+        _cc_clusters = []
+        print(f"Total de clusters: {_cantidad_total}")
+        for _cluster in _clusters:
+            _enrichments = enrichment.get_by_cluster_id(
+                db, cluster_id=_cluster.id
+            )  # noqa
+            for _enrichment in _enrichments:
+                if (
+                    _enrichment.go_terms.domain == "BP"
+                    and _enrichment.p_value < 0.05  # noqa
+                ):  # noqa
+                    if _cluster not in _bp_clusters:
+                        _bp_clusters.append(_cluster)
+                elif (
+                    _enrichment.go_terms.domain == "MF"
+                    and _enrichment.p_value < 0.05  # noqa
+                ):  # noqa
+                    if _cluster not in _mf_clusters:
+                        _mf_clusters.append(_cluster)
+                elif (
+                    _enrichment.go_terms.domain == "CC"
+                    and _enrichment.p_value < 0.05  # noqa
+                ):  # noqa
+                    if _cluster not in _cc_clusters:
+                        _cc_clusters.append(_cluster)
+        _cantidad_clusters_bp = len(_bp_clusters)
+        _cantidad_clusters_mf = len(_mf_clusters)
+        _cantidad_clusters_cc = len(_cc_clusters)
+        print(f"Total de clusters BP: {_cantidad_clusters_bp}")
+        print(f"Total de clusters MF: {_cantidad_clusters_mf}")
+        print(f"Total de clusters CC: {_cantidad_clusters_cc}")
+        obj = {
+            "ora_bp_score": _cantidad_clusters_bp / _cantidad_total,
+            "ora_mf_score": _cantidad_clusters_mf / _cantidad_total,
+            "ora_cc_score": _cantidad_clusters_cc / _cantidad_total,
+        }
+        params.update(db, db_obj=param, obj_in=obj)
+        print(f"Actualizado: {param.id}")
+    print("Finalizado")
 
-    _set_file_1 = set(file_1)
-    _set_file_2 = set(file_2)
-    diff = _set_file_1.difference(_set_file_2)
-    for d in diff:
-        print(d)
 
-
-diff_between_two_file("./complejos_collins_all.csv", "./complejos_collins_enrich.csv")
+populate_ora_score()
