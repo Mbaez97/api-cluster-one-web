@@ -8,7 +8,7 @@ sys.path.append(str(HERE / "../"))
 
 from libs.lib_manejo_csv import lee_csv, lee_txt
 from app.models import Protein, Edge, PPIGraph, Layout, EdgePPIInteraction
-from app.crud import protein as crud_protein, edge as crud_edge
+from app.crud import protein as crud_protein, edge as crud_edge, ppi_graph as crud_ppi
 from app.db.session import SessionLocal
 
 from config import Settings
@@ -43,49 +43,21 @@ def generate_random_styles():
 
 
 def create_ppi(file_path: str):
-    ppi_dataset = lee_txt(file_path, delimiter="\t")
+    ppi_dataset = lee_txt(file_path)
+    _data = {
+        "external_weight": 0,
+        "internal_weight": 0,
+        "density": 0,
+        "size": len(ppi_dataset),
+        "quality": 0,
+        "layout": 1,
+        "data": file_path,
+        "name": file_path.replace("./app/media/ppi/", ""),
+        "preloaded": False,
+    }
     db = SessionLocal()
-    _get_random_layout = db.query(Layout).filter(Layout.name == "random").first()
-    _ppi_objet = PPIGraph(
-        name="PPI Biogrid Yeast Physical Unweighted",
-        preloaded=True,
-        size=len(ppi_dataset),
-        density=0.0,
-        layout=_get_random_layout,
-    )
-    db.add(_ppi_objet)
-    db.commit()
-    for data in ppi_dataset:
-        _data = data.split("\t")
-        protein_1 = db.query(Protein).filter(Protein.name == _data[0]).first()
-        protein_2 = (
-            db.query(Protein).filter(Protein.name == _data[1].replace("\n", "")).first()
-        )
-        _edge_style = {
-            "selected": False,
-            "selectable": True,
-            "locked": False,
-            "grabbable": False,
-            "classes": "pp",
-            "line-color": "#ccc",
-            "target-arrow-color": "#ccc",
-        }
-        _edge_style_objet = Style(
-            cytoscape_styles=_edge_style,
-            type=1,
-        )
-        db.add(_edge_style_objet)
-        _edge = Edge(
-            protein_a=protein_1,
-            protein_b=protein_2,
-            weight=0.0,
-            has_direction=False,
-            direction=0,
-            style=_edge_style_objet,
-        )
-        db.add(_edge)
-        _ppi_objet.edge.append(_edge)
-        db.commit()
+    _new_ppi = crud_ppi.create_ppi_from_file(obj=_data, db=db)
+    print(_new_ppi)
 
 
 def crate_layouts():
