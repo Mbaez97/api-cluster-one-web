@@ -44,23 +44,25 @@ def generate_random_styles():
 
 def create_ppi(file_path: str):
     ppi_dataset = lee_txt(file_path)
+    db = SessionLocal()
+    _random_layout = db.query(Layout).filter(Layout.name == "random").first()
     _data = {
         "external_weight": 0,
         "internal_weight": 0,
         "density": 0,
         "size": len(ppi_dataset),
         "quality": 0,
-        "layout": 1,
+        "layout": _random_layout,
         "data": file_path,
         "name": file_path.replace("./app/media/ppi/", ""),
         "preloaded": False,
     }
-    db = SessionLocal()
-    _new_ppi = crud_ppi.create_ppi_from_file(obj=_data, db=db)
+    _new_ppi = crud_ppi.create_ppi_from_file(db, obj=_data)
     print(_new_ppi)
 
 
 def crate_layouts():
+    print("LOGS: Creating layouts")
     layouts = [
         "cola",
         "cose",
@@ -154,4 +156,5 @@ def parse_ppi_csv_to_txt(file_path: str, file_out_path: str, wieght: bool = Fals
 #     "./app/media/ppi/PP-Pathways_ppi.txt",
 #     wieght=False,
 # )
+crate_layouts()
 create_ppi("./app/media/ppi/PP-Pathways_ppi.txt")
