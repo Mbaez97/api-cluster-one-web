@@ -1,5 +1,17 @@
 import csv
 
+import os
+
+
+def detect_file_type(file_path):
+    _, file_extension = os.path.splitext(file_path)
+    if file_extension == ".txt":
+        return "txt"
+    elif file_extension == ".csv":
+        return "csv"
+    else:
+        return "unknown"
+
 
 def escribe_csv(archivo, data):
     with open(archivo, "a+", newline="") as out_file:

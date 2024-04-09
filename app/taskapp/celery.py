@@ -4,7 +4,7 @@ from app import crud
 from app.db.session import SessionLocal
 from celery import Celery  # type: ignore
 from config import settings
-from libs.lib_manejo_csv import lee_txt
+from libs.lib_manejo_csv import lee_txt, detect_file_type, lee_csv
 
 celery_app = Celery(
     __name__, broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND  # type: ignore # noqa
@@ -85,14 +85,22 @@ def async_insert_redis(
 ) -> str:
     db = SessionLocal()
     _ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=ppi_id)
-    ppi_dataset = lee_txt(_ppi_obj.data)
+    # detect if the file is a txt or csv
+    _file_type = detect_file_type(_ppi_obj.data)
+    if _file_type == "csv":
+        ppi_dataset = lee_csv(_ppi_obj.data, delimiter=",")
+    else:
+        ppi_dataset = lee_txt(_ppi_obj.data)
     r = Redis(host="redis", port=6379, db=3)
     _objects = []
     for data in ppi_dataset:
-        data = data.replace("\n", "")
-        _data = data.split("\t")
-        if len(_data) == 1:
-            _data = data.split(" ")
+        if _file_type == "txt":
+            data = data.replace("\n", "")
+            _data = data.split("\t")
+            if len(_data) == 1:
+                _data = data.split(" ")
+        else:
+            _data = data
         protein_1 = crud.protein.get_by_name(db, name=_data[0])
         protein_2 = crud.protein.get_by_name(db, name=_data[1])
         try:
@@ -130,12 +138,19 @@ def async_creation_edge_for_ppi(
 ) -> str:
     db = SessionLocal()
     _ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=ppi_id)
-    ppi_dataset = lee_txt(_ppi_obj.data, delimiter="\t")
+    _file_type = detect_file_type(_ppi_obj.data)
+    if _file_type == "csv":
+        ppi_dataset = lee_csv(_ppi_obj.data, delimiter=",")
+    else:
+        ppi_dataset = lee_txt(_ppi_obj.data)
     for data in ppi_dataset:
-        data = data.replace("\n", "")
-        _data = data.split("\t")
-        if len(_data) == 1:
-            _data = data.split(" ")
+        if _file_type == "txt":
+            data = data.replace("\n", "")
+            _data = data.split("\t")
+            if len(_data) == 1:
+                _data = data.split(" ")
+        else:
+            _data = data
         protein_1 = crud.protein.get_by_name(db, name=_data[0])
         protein_2 = crud.protein.get_by_name(db, name=_data[1])
         try:

@@ -1,4 +1,5 @@
 """Execute ClusterOne algorithm and return the data in json format."""
+
 import time
 import random
 import json
@@ -226,7 +227,6 @@ def run_cluster_one(
     ppi_obj = crud.ppi_graph.get_ppi_by_id(db, id=pp_id)
     if not ppi_obj:
         raise HTTPException(status_code=404, detail="PPI not found")
-
     _base_command = "java -jar cluster_one-1.0.jar"
     _file_name = f"complex_cluster_response_{get_default_uuid()}.csv"
     _final_command = "> " + _file_name
@@ -280,6 +280,7 @@ def run_cluster_one(
             if not _cluster_obj:
                 _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
         else:
+            # pass
             _cluster_obj = crud.cluster_graph.create_cluster(db, obj=_obj)
 
         # Proteins
@@ -357,21 +358,21 @@ def run_cluster_one(
             f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds"  # noqa
         )  # noqa
         return response_data
-    print("LOGS: Creating edges in DB")
-    for _cluster in _clusters:
-        # Async Create edge for cluster
-        # async_creation_edge_for_cluster.delay(
-        #     cluster_edges=_cluster["edges"],
-        #     ppi_id=pp_id,
-        #     cluster_id=_cluster["code"],
-        # )
-        async_creation_edge_for_cluster.apply_async(
-            kwargs={
-                "cluster_edges": _cluster["edges"],
-                "ppi_id": pp_id,
-                "cluster_id": _cluster["code"],
-            },
-        )
+    # print("LOGS: Creating edges in DB")
+    # for _cluster in _clusters:
+    #     # Async Create edge for cluster
+    #     # async_creation_edge_for_cluster.delay(
+    #     #     cluster_edges=_cluster["edges"],
+    #     #     ppi_id=pp_id,
+    #     #     cluster_id=_cluster["code"],
+    #     # )
+    #     async_creation_edge_for_cluster.apply_async(
+    #         kwargs={
+    #             "cluster_edges": _cluster["edges"],
+    #             "ppi_id": pp_id,
+    #             "cluster_id": _cluster["code"],
+    #         },
+    #     )
     response_data = process_data(_clusters)
     # _response_final = {
     #     "params_id": _params_obj.id,

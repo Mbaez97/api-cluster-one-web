@@ -160,6 +160,25 @@ def create_edge_ppi_interaction_by_ppi_id(file_path: str, ppi_id: int):
             crud_edge.create_edge_for_ppi(db, obj=_obj)
 
 
-create_edge_ppi_interaction_by_ppi_id(
-    "./app/media/ppi/gavin2006_socioaffinities_rescaled.txt", 24275
+# create_edge_ppi_interaction_by_ppi_id(
+#     "./app/media/ppi/gavin2006_socioaffinities_rescaled.txt", 24275
+# )
+
+
+def parse_ppi_csv_to_txt(file_path: str, file_out_path: str, wieght: bool = False):
+    ppi_dataset = lee_csv(file_path, delimiter=",")
+    with open(file_out_path, "w") as f:
+        print("LOGS: Creating file")
+        for data in ppi_dataset:
+            if wieght:
+                f.write(f"{data[0]}\t{data[1]}\t{data[2]}\n")
+            else:
+                f.write(f"{data[0]}\t{data[1]}\n")
+    print("LOGS: File created")
+
+
+parse_ppi_csv_to_txt(
+    "./app/media/ppi/PP-Pathways_ppi.csv",
+    "./app/media/ppi/PP-Pathways_ppi.txt",
+    wieght=False,
 )

@@ -1,4 +1,5 @@
 """Get Graph data"""
+
 import json
 from fastapi import (  # noqa F401 # type: ignore
     APIRouter,
@@ -63,10 +64,14 @@ def get_or_create_ppi_graph_from_file(
     if file:
         # Save file in media
         _file_path = f"/app/app/media/ppi/{file.filename}"
-        with open(_file_path, "wb") as buffer:
-            buffer.write(file.file.read())
-            _size = list(buffer)
-            buffer.close()
+        try:
+            with open(_file_path, "wb") as buffer:
+                buffer.write(file.file.read())
+                _size = list(buffer)
+                buffer.close()
+        except Exception as e:
+            print(e)
+            _size = []
         _layout = db.query(Layout).filter(Layout.name == "random").first()
         _data = {
             "external_weight": 0,
@@ -83,7 +88,7 @@ def get_or_create_ppi_graph_from_file(
         if not _ppi_obj:
             _new_ppi = crud.ppi_graph.create_ppi_from_file(db, obj=_data)
             async_insert_redis.delay(_new_ppi.id)
-            async_creation_edge_for_ppi.delay(_new_ppi.id)
+            # async_creation_edge_for_ppi.delay(_new_ppi.id)
             response = {
                 "id": _new_ppi.id,
                 "name": _new_ppi.name,
@@ -94,7 +99,7 @@ def get_or_create_ppi_graph_from_file(
             }
             return response
         async_insert_redis.delay(_ppi_obj.id)
-        async_creation_edge_for_ppi.delay(_ppi_obj.id)
+        # async_creation_edge_for_ppi.delay(_ppi_obj.id)
         response = {
             "id": _ppi_obj.id,
             "name": _ppi_obj.name,
