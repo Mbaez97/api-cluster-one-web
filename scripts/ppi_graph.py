@@ -177,8 +177,9 @@ def parse_ppi_csv_to_txt(file_path: str, file_out_path: str, wieght: bool = Fals
     print("LOGS: File created")
 
 
-parse_ppi_csv_to_txt(
-    "./app/media/ppi/PP-Pathways_ppi.csv",
-    "./app/media/ppi/PP-Pathways_ppi.txt",
-    wieght=False,
-)
+# parse_ppi_csv_to_txt(
+#     "./app/media/ppi/PP-Pathways_ppi.csv",
+#     "./app/media/ppi/PP-Pathways_ppi.txt",
+#     wieght=False,
+# )
+create_ppi("./app/media/ppi/PP-Pathways_ppi.txt")
