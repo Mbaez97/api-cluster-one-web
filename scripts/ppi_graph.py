@@ -1,17 +1,20 @@
 import sys
-import requests
 import random
 from pathlib import Path
 
 HERE = Path(__file__).parent
 sys.path.append(str(HERE / "../"))
 
-from libs.lib_manejo_csv import lee_csv, lee_txt
-from app.models import Protein, Edge, PPIGraph, Layout, EdgePPIInteraction
-from app.crud import protein as crud_protein, edge as crud_edge, ppi_graph as crud_ppi
-from app.db.session import SessionLocal
+from libs.lib_manejo_csv import lee_csv, lee_txt  # noqa
+from app.models import PPIGraph, Layout  # noqa
+from app.crud import (  # noqa
+    protein as crud_protein,
+    edge as crud_edge,
+    ppi_graph as crud_ppi,
+)  # noqa
+from app.db.session import SessionLocal  # noqa
 
-from config import Settings
+from config import Settings  # noqa
 
 settings = Settings()
 print(settings.SQLALCHEMY_DATABASE_URI)
@@ -134,16 +137,14 @@ def create_edge_ppi_interaction_by_ppi_id(file_path: str, ppi_id: int):
             crud_edge.create_edge_for_ppi(db, obj=_obj)
 
 
-# create_edge_ppi_interaction_by_ppi_id(
-#     "./app/media/ppi/gavin2006_socioaffinities_rescaled.txt", 24275
-# )
-
-
-def parse_ppi_csv_to_txt(file_path: str, file_out_path: str, wieght: bool = False):
+def parse_ppi_csv_to_txt(
+    file_path: str, file_out_path: str, wieght: bool = False
+):  # noqa
     ppi_dataset = lee_csv(file_path, delimiter=",")
     with open(file_out_path, "w") as f:
         print("LOGS: Creating file")
         for data in ppi_dataset:
+            print(data)
             if wieght:
                 f.write(f"{data[0]}\t{data[1]}\t{data[2]}\n")
             else:
@@ -151,10 +152,38 @@ def parse_ppi_csv_to_txt(file_path: str, file_out_path: str, wieght: bool = Fals
     print("LOGS: File created")
 
 
-# parse_ppi_csv_to_txt(
-#     "./app/media/ppi/PP-Pathways_ppi.csv",
-#     "./app/media/ppi/PP-Pathways_ppi.txt",
-#     wieght=False,
-# )
-crate_layouts()
-create_ppi("./app/media/ppi/PP-Pathways_ppi.txt")
+def parse_ppi_file_hq_to_txt(
+    file_path: str, file_out_path: str, wieght: bool = False
+):  # noqa
+    ppi_dataset = lee_txt(file_path)
+    with open(file_out_path, "w") as f:
+        print("LOGS: Creating file")
+        for i, data in enumerate(ppi_dataset):
+            # breakpoint()
+            _data = data.split("\t")
+            print(_data)
+            if i == 0:
+                continue
+            if wieght:
+                f.write(f"{_data[0]}\t{_data[1]}\t{_data[2]}\n")
+            else:
+                f.write(f"{_data[0]}\t{_data[1]}\n")
+    print("LOGS: File created")
+
+
+if __name__ == "__main__":
+    print("LOGS: Running script")
+    # Create PPI from file for the first time, we use this scripts for testing
+    # crate_layouts()
+    # create_ppi("./app/media/ppi/PP-Pathways_ppi.txt")
+
+    # Parse PPI file from csv to txt or from hq to txt
+    # parse_ppi_csv_to_txt(
+    #     "./app/media/ppi/PP-Pathways_ppi.csv",
+    #     "./app/media/ppi/PP-Pathways_ppi.txt",
+    #     wieght=True,
+    # )
+    parse_ppi_file_hq_to_txt(
+        "./dataset_test_performance/hq_file/OryzaSativa_binary_hq.txt",
+        "./dataset_test_performance/parsed/OryzaSativa_binary.txt",
+    )
