@@ -37,6 +37,20 @@ def get_proteins_from_fasta_file(path):
     return proteins
 
 
+def get_proteins_from_gaf_file(path):
+    """
+    Only returns the proteins in the GAF file in version 2.2
+    """
+    proteins = []
+    with open(path, "r") as f:
+        for line in f:
+            if line[0] == "!":
+                continue
+            fields = line.strip().split("\t")
+            proteins.append(fields[2])
+    return proteins
+
+
 def get_mapping_to_uniprot_id() -> dict:
     """
     Returns a dictionary with the mapping from
@@ -85,7 +99,7 @@ def mapping_to_uniprot_id(proteins):
 
 
 def run(
-    proteome_file,
+    # proteome_file,
     complexes_file,
     goa_file,
     obo_file,
@@ -94,12 +108,17 @@ def run(
     min_group_count=1,
     max_group_size=100,
 ):
-    logger.info(f"Parsing proteome fasta file {proteome_file}...")
-    background = get_proteins_from_fasta_file(proteome_file)
+    # Load the proteome (DEPRECATED, use the GAF file instead)
+    # logger.info(f"Parsing proteome fasta file {proteome_file}...")
+    # background = get_proteins_from_fasta_file(proteome_file)
+
+    # TODO: Extract the proteins from the GAF file,
+    # not the proteome .FASTA file
+    background = get_proteins_from_gaf_file(goa_file)
     total_background = len(background)
     logger.info(f"Found {total_background} proteins in the proteome")
 
-    logger.info("Building Ontology in memory...")
+    logger.info("Building structure Ontology in memory...")
     go = GeneOntology(obo=obo_file)
     go.build_ontology()
 
@@ -203,12 +222,9 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="formats the raw output of blast into "
-        "the homolog information for ProteoBOOSTER"
+        description="formats the raw output of blast into"
+        "the homolog information for ORA in ClusterONE WEB"
     )
-    parser.add_argument(
-        "proteome_file", help="Path to the proteome fasta file"
-    )  # noqa: E501
     parser.add_argument(
         "complexes_file", help="File with complexes to analyze"
     )  # noqa: E501
@@ -217,7 +233,6 @@ if __name__ == "__main__":
     parser.add_argument("output_file", help="path to write the results")
     args = parser.parse_args()
     run(
-        args.proteome_file,
         args.complexes_file,
         args.goa_file,
         args.obo_file,

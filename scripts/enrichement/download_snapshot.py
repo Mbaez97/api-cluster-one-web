@@ -102,6 +102,7 @@ class DownloadSnapshot:
         out.close()
         print()
 
+    # Change this for a specific proteome and provided to the user
     def download_uniprot_goa(self):
         url = (
             "ftp://ftp.ebi.ac.uk/pub/databases/GO/goa/UNIPROT/" "goa_uniprot_all.gaf.gz"
