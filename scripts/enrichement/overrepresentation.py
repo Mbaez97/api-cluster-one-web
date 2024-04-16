@@ -1,9 +1,16 @@
+import sys
+import scipy.stats as stats  # type: ignore
+import pandas as pd  # type: ignore
 import logging
-from libs.golib.core.gene_ontology import GeneOntology
-from rich.progress import track
-import scipy.stats as stats
-import pandas as pd
-from libs.lib_manejo_csv import lee_csv
+
+from pathlib import Path
+from rich.progress import track  # type: ignore
+from golib.core.gene_ontology import GeneOntology  # noqa
+
+HERE = Path(__file__).parent
+sys.path.append(str(HERE / "../../"))  # noqa
+# Import personal libraries
+from libs.lib_manejo_csv import lee_csv  # noqa
 
 
 logger = logging.getLogger("overrepresentation")
@@ -98,8 +105,7 @@ def mapping_to_uniprot_id(proteins):
     return _proteins
 
 
-def run(
-    # proteome_file,
+def run_ora(
     complexes_file,
     goa_file,
     obo_file,
@@ -107,29 +113,24 @@ def run(
     pvalue_tau=0.05,
     min_group_count=1,
     max_group_size=100,
+    mapping_protiens_to_uniprot=False,
 ):
-    # Load the proteome (DEPRECATED, use the GAF file instead)
-    # logger.info(f"Parsing proteome fasta file {proteome_file}...")
-    # background = get_proteins_from_fasta_file(proteome_file)
-
-    # TODO: Extract the proteins from the GAF file,
-    # not the proteome .FASTA file
+    logger.info(f"Getting proteins of GAF file {goa_file}...")
     background = get_proteins_from_gaf_file(goa_file)
     total_background = len(background)
     logger.info(f"Found {total_background} proteins in the proteome")
+
+    logger.info(f"Processing Complexes file {complexes_file}...")
+    complexes = read_complexes(complexes_file, max_group_size)
+    complexes_prots = get_proteins_in_complexes(complexes)
+    num_complexes = len(complexes)
+    logger.info(f"Found {num_complexes} complexes")
 
     logger.info("Building structure Ontology in memory...")
     go = GeneOntology(obo=obo_file)
     go.build_ontology()
 
-    logger.info("Processing Complexes file...")
-    complexes = read_complexes(complexes_file, max_group_size)
-    complexes_prots = get_proteins_in_complexes(complexes)
-    num_complexes = len(complexes)
-    logger.info(f"Found {num_complexes} complexes")
-    print(complexes_prots)
-
-    logger.info("Loading GO annotations for this proteome...")
+    logger.info("Loading GO annotations for this organins...")
     go.load_gaf_file(goa_file, "overrep")
     go.up_propagate_annotations("overrep")
     annotations = go.annotations("overrep")
@@ -145,7 +146,6 @@ def run(
     table_prots = table.columns.values
     num_hypotheses = table.shape[0]
 
-    breakpoint()
     # the background is shared for all complexes,
     # so we can pre-calculate the counts
     annotated_bg = list(set(background) & set(table_prots))
@@ -154,20 +154,25 @@ def run(
     bg_counts = bg_counts[bg_counts > 0]
     tot_minus_bg_counts = total_background - bg_counts
 
-    logger.info(f"Found {num_complexes} complexes," " analyzing overrepresentation")
+    logger.info(
+        f"Found {num_complexes} complexes," " analyzing overrepresentation"
+    )  # noqa
     overrepresented_goterms = []
     for i, (complex_id, proteins) in track(
-        enumerate(complexes.items()), description="Analyzing...", total=num_complexes
+        enumerate(complexes.items()),
+        description="Analyzing...",
+        total=num_complexes,  # noqa
     ):
         # Log progress
         perc = i / len(complexes)
         logger.info(
-            f"Analyzing complex {i}/{len(complexes)}" f" ({perc * 100.0:.2f}%)) ..."
+            f"Analyzing complex {i}/{len(complexes)}"
+            f" ({perc * 100.0:.2f}%)) ..."  # noqa
         )
-        proteins = mapping_to_uniprot_id(proteins)
-        logger.info(f"Complex {complex_id} has {len(proteins)} proteins")
-        print(proteins)
+        if mapping_protiens_to_uniprot:
+            proteins = mapping_to_uniprot_id(proteins)
 
+        logger.info(f"Complex {complex_id} has {len(proteins)} proteins")
         # Calculate the counts for this group
         total_group = len(proteins)
         annotated_gr_prots = list(set(proteins) & set(table_prots))
@@ -219,22 +224,30 @@ def run(
 
 
 if __name__ == "__main__":
-    import argparse
+    # Execute the ORA
+    # import argparse
 
-    parser = argparse.ArgumentParser(
-        description="formats the raw output of blast into"
-        "the homolog information for ORA in ClusterONE WEB"
-    )
-    parser.add_argument(
-        "complexes_file", help="File with complexes to analyze"
-    )  # noqa: E501
-    parser.add_argument("goa_file", help="path to GOA file")
-    parser.add_argument("obo_file", help="path to go.obo file")
-    parser.add_argument("output_file", help="path to write the results")
-    args = parser.parse_args()
-    run(
-        args.complexes_file,
-        args.goa_file,
-        args.obo_file,
-        args.output_file,
+    # parser = argparse.ArgumentParser(
+    #     description="formats the raw output of blast into"
+    #     "the homolog information for ORA in ClusterONE WEB"
+    # )
+    # parser.add_argument(
+    #     "complexes_file", help="File with complexes to analyze"
+    # )  # noqa: E501
+    # parser.add_argument("goa_file", help="path to GOA file")
+    # parser.add_argument("obo_file", help="path to go.obo file")
+    # parser.add_argument("output_file", help="path to write the results")
+    # args = parser.parse_args()
+    # run_ora(
+    #     args.complexes_file,
+    #     args.goa_file,
+    #     args.obo_file,
+    #     args.output_file,
+    # )
+
+    # Test some functions
+    print(
+        get_proteins_from_gaf_file(
+            "/app/app/media/enrichment/goa_uniprot_homosapiens.gaf"
+        )
     )
