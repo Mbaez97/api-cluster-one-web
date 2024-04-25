@@ -5,7 +5,7 @@ import logging
 
 from pathlib import Path
 from rich.progress import track  # type: ignore
-from golib.core.gene_ontology import GeneOntology  # noqa
+from golib.core.gene_ontology import GeneOntology  # type: ignore
 
 HERE = Path(__file__).parent
 sys.path.append(str(HERE / "../../"))  # noqa
@@ -31,7 +31,9 @@ def read_complexes(path, max_group_size):
             if not line.startswith("Clu"):
                 fields = line.strip().split(",")
                 if int(fields[1]) <= max_group_size:
-                    complexes[int(fields[0])] = fields[7].replace('"', "").split()
+                    complexes[int(fields[0])] = (
+                        fields[7].replace('"', "").split()
+                    )  # noqa: E501
     return complexes
 
 
@@ -111,7 +113,6 @@ def run_ora(
     obo_file,
     out_file,
     pvalue_tau=0.05,
-    min_group_count=1,
     max_group_size=100,
     mapping_protiens_to_uniprot=False,
 ):
