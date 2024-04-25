@@ -19,11 +19,24 @@ def execute_cluster_one(command: str, file_name: str = None):
     os.system(command)
     if file_name:
         response = lee_csv(file_name)
-        os.system(f"mv {file_name} /app/app/media/clusters/{file_name}")
+        print(f"mv {file_name} /app/app/media/clusters/{file_name}")
+        try:
+            os.system(f"mv {file_name} /app/app/media/clusters/{file_name}")
+        except Exception as e:
+            print(e)
+            os.system("mkdir /app/app/media/clusters")
+            os.system(f"mv {file_name} /app/app/media/clusters/{file_name}")
         return response
     else:
         response = lee_csv("complex_cluster_response.csv")
-        os.system(
-            "mv complex_cluster_response.csv /app/app/media/clusters/complex_cluster_response.csv"
-        )
+        try:
+            os.system(
+                "mv complex_cluster_response.csv /app/app/media/clusters/complex_cluster_response.csv"
+            )
+        except Exception as e:
+            print(e)
+            os.system("mkdir /app/app/media/clusters")
+            os.system(
+                "mv complex_cluster_response.csv /app/app/media/clusters/complex_cluster_response.csv"
+            )
     return response
