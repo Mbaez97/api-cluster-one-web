@@ -225,29 +225,29 @@ def run_ora(
 
 if __name__ == "__main__":
     # Execute the ORA
-    # import argparse
+    import argparse
 
-    # parser = argparse.ArgumentParser(
-    #     description="formats the raw output of blast into"
-    #     "the homolog information for ORA in ClusterONE WEB"
-    # )
-    # parser.add_argument(
-    #     "complexes_file", help="File with complexes to analyze"
-    # )  # noqa: E501
-    # parser.add_argument("goa_file", help="path to GOA file")
-    # parser.add_argument("obo_file", help="path to go.obo file")
-    # parser.add_argument("output_file", help="path to write the results")
-    # args = parser.parse_args()
-    # run_ora(
-    #     args.complexes_file,
-    #     args.goa_file,
-    #     args.obo_file,
-    #     args.output_file,
-    # )
-
-    # Test some functions
-    print(
-        get_proteins_from_gaf_file(
-            "/app/app/media/enrichment/goa_uniprot_homosapiens.gaf"
-        )
+    parser = argparse.ArgumentParser(
+        description="formats the raw output of blast into"
+        "the homolog information for ORA in ClusterONE WEB"
     )
+    parser.add_argument(
+        "complexes_file", help="File with complexes to analyze"
+    )  # noqa: E501
+    parser.add_argument("goa_file", help="path to GOA file")
+    parser.add_argument("obo_file", help="path to go.obo file")
+    parser.add_argument("output_file", help="path to write the results")
+    args = parser.parse_args()
+    run_ora(
+        args.complexes_file,
+        args.goa_file,
+        args.obo_file,
+        args.output_file,
+    )
+
+    # # Test some functions
+    # print(
+    #     get_proteins_from_gaf_file(
+    #         "/app/app/media/enrichment/goa_uniprot_homosapiens.gaf"
+    #     )
+    # )
