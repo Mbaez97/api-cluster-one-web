@@ -140,6 +140,15 @@ def create_edge_ppi_interaction_by_ppi_id(file_path: str, ppi_id: int):
 def parse_ppi_csv_to_txt(
     file_path: str, file_out_path: str, wieght: bool = False
 ):  # noqa
+    """
+    Parses PPI data from a CSV file to a text file.
+
+    Parameters:
+        file_path (str): The path to the input CSV file.
+        file_out_path (str): The path to the output text file.
+        wieght (bool, optional): Flag indicating whether to include weights.
+        Defaults to False.
+    """
     ppi_dataset = lee_csv(file_path, delimiter=",")
     with open(file_out_path, "w") as f:
         print("LOGS: Creating file")
