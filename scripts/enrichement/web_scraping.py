@@ -1,6 +1,6 @@
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from lib_manejo_csv import escribe_csv, crea_csv, lee_csv
+from selenium import webdriver  # type: ignore
+from selenium.webdriver.common.by import By  # type: ignore
+from lib_manejo_csv import escribe_csv, crea_csv, lee_csv  # type: ignore
 
 
 def get_uniprot_ids_from_complexes(file_path: str, file_path_out: str):
