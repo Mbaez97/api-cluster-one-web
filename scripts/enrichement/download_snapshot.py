@@ -207,8 +207,8 @@ def main(args):
 
         # GOA = Gene Ontology Annotation
         # For each protein in UniProt, there is a GOA entry
-        logger.info("downloading UniProtKB-GOA file")
-        download_snapshot.download_uniprot_goa()
+        # logger.info("downloading UniProtKB-GOA file")
+        # download_snapshot.download_uniprot_goa()
 
         logger.info("downloading Gene Ontology file")
         download_snapshot.download_gene_ontology()
