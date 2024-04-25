@@ -5,6 +5,7 @@ from app.db.session import SessionLocal
 from celery import Celery  # type: ignore
 from config import settings
 from libs.lib_manejo_csv import lee_txt, detect_file_type, lee_csv
+from scripts.enrichement.overrepresentation import run_ora
 
 celery_app = Celery(
     __name__, broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND  # type: ignore # noqa
@@ -182,3 +183,25 @@ def async_creation_edge_for_ppi(
             crud.edge.create_edge_for_ppi(db, obj=_obj)
     db.close()
     return f"Celery task: async_creation_edge_for_ppi -> PPI: {ppi_id}"
+
+
+@celery_app.task(name="app.taskapp.celery.async_execute_enrichment")
+def async_execute_enrichment(
+    params_id: int,
+    goa_file: str,
+) -> str:
+    db = SessionLocal()
+    _params_obj = crud.params.get_by_id(db, id=params_id)
+    response = crud.cluster_graph.get_file_by_params(
+        db, params_id=_params_obj.id
+    )  # noqa
+    _cluster = response[0]
+    _file_path = _cluster.data
+    run_ora(
+        _file_path,
+        goa_file,
+        "/app/app/media/enrichment/go-basic.obo",
+        f"/app/app/media/enrichment/ora_output_{_params_obj.id}.tsv",
+    )
+
+    return f"Celery task: async_execute_enrichment -> ClusterONE Excecution: {params_id}"  # noqa
