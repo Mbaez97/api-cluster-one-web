@@ -38,7 +38,7 @@ def open_binary_file(file_path):
     return data
 
 
-def main():
+def main(do_ora=True):
     # Read all ppi files, i don't know how many files there are
     # PATH_TEST = "/Users/marcelobaez/Desarrollo Academico/paccanaro-lab/develop/api-cluster-one-web/dataset_test_performance/"  # noqa
     PATH_TEST = "/home/marcelo.baez/develop/api-cluster-one-web/dataset_test_performance/"  # noqa
@@ -70,37 +70,41 @@ def main():
                 print(r.text)
                 break
 
-            # Step 2: Upload GOA
-            print("STEP 2: Upload GOA")
-            goa_path = PATH_TEST + "goa_file/"
-            goa_files = os.listdir(goa_path)
-            for goa_file in goa_files:
-                _goa_name_aux = goa_file.split(".")[0]
-                _ppi_name_aux = ppi_file.split(".")[0]
-                if _goa_name_aux == _ppi_name_aux:
-                    print(f"Executing for {goa_file}")
-                    _file_goa = open_binary_file(goa_path + goa_file)
-                    files = {"file": (goa_file, _file_goa)}
-                    r = requests.post(
-                        "http://localhost:8203/v1/api/enrichment/upload/goa/",
-                        files=files,
-                        # headers={"Content-Type": "application/octet-stream"},
-                    )
-                    if r.status_code == 200:
-                        print("GOA uploaded")
-                        _goa_json = r.json()
-                        print(_goa_json)
-                        break
-                    else:
-                        print(r.text)
-                        break
+            if do_ora:
+                # Step 2: Upload GOA
+                print("STEP 2: Upload GOA")
+                goa_path = PATH_TEST + "goa_file/"
+                goa_files = os.listdir(goa_path)
+                for goa_file in goa_files:
+                    _goa_name_aux = goa_file.split(".")[0]
+                    _ppi_name_aux = ppi_file.split(".")[0]
+                    if _goa_name_aux == _ppi_name_aux:
+                        print(f"Executing for {goa_file}")
+                        _file_goa = open_binary_file(goa_path + goa_file)
+                        files = {"file": (goa_file, _file_goa)}
+                        r = requests.post(
+                            "http://localhost:8203/v1/api/enrichment/upload/goa/",
+                            files=files,
+                        )
+                        if r.status_code == 200:
+                            print("GOA uploaded")
+                            _goa_json = r.json()
+                            print(_goa_json)
+                            break
+                        else:
+                            print(r.text)
+                            break
 
             # delay
             time.sleep(_ppi_json["size"] if _ppi_json["size"] > 0 else 30)
             # Step 3: Execute ClusterONE
             print("STEP 3: Execute ClusterONE")
+            if do_ora:
+                _url = f"http://localhost:8203/v1/api/cluster_one/run/?pp_id={_ppi_json['id']}&goa_file={_goa_json['goa_file']}"
+            else:
+                _url = f"http://localhost:8203/v1/api/cluster_one/run/?pp_id={_ppi_json['id']}"
             r = requests.post(
-                f"http://localhost:8203/v1/api/cluster_one/run/?pp_id={_ppi_json['id']}&goa_file={_goa_json['goa_file']}",  # noqa
+                _url,  # noqa
             )
             if r.status_code == 200:
                 print("ClusterONE executed")
@@ -114,20 +118,22 @@ def main():
             print(
                 f"Time to cluster: {end_cluster_time - start_time:.4f} seconds"
             )  # noqa
+
             start_time_ora = time.time()
             # Step 4: Call API for ORA results
-            while True:
-                print("STEP 4: Call API for ORA results")
-                r = requests.get(
-                    f"http://localhost:8203/v1/api/enrichment/complex/{_cluster_to_test_ora}/?cluster_id={_cluster_to_test_ora}",  # noqa
-                )
-                if r.status_code == 200:
-                    print("ORA results")
-                    _ora_json = r.json()
-                    print(_ora_json)
-                    break
-                else:
-                    print(r.text)
+            if do_ora:
+                while True:
+                    print("STEP 4: Call API for ORA results")
+                    r = requests.get(
+                        f"http://localhost:8203/v1/api/enrichment/complex/{_cluster_to_test_ora}/?cluster_id={_cluster_to_test_ora}",  # noqa
+                    )
+                    if r.status_code == 200:
+                        print("ORA results")
+                        _ora_json = r.json()
+                        print(_ora_json)
+                        break
+                    else:
+                        print(r.text)
             end_time_ora = time.time()
             print(f"Time to ORA: {end_time_ora - start_time_ora:.4f} seconds")
             # Step 5: Write results
@@ -144,4 +150,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(do_ora=False)

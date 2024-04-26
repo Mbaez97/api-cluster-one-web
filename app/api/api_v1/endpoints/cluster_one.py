@@ -346,9 +346,9 @@ def run_cluster_one(
                 "ppi_id": pp_id,
             }
         )
-
-    # Parallel execution of enrichment
-    async_execute_enrichment.delay(_params_obj.id, goa_file)
+    if goa_file:
+        # Parallel execution of enrichment
+        async_execute_enrichment.delay(_params_obj.id, goa_file)
 
     if _exist_params:
         print("LOGS: Params already exists")
