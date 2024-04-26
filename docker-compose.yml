@@ -3,6 +3,7 @@ version: "3"
 volumes:
   local_postgres_data: {}
   local_postgres_data_backups: {}
+  archivos_compartidos: {}
 
 services:
   web_server: &pythonbuild
@@ -13,6 +14,7 @@ services:
     image: api-cluster-one-web-server
     volumes:
       - .:/app
+      - archivos_compartidos:/app/app/media/
     env_file:
       - ./.env
     environment:
@@ -49,6 +51,8 @@ services:
       - db
     env_file:
       - .env
+    volumes:
+      - archivos_compartidos:/app/app/media/
     build:
       context: .
       dockerfile: ./compose/web-server/Dockerfile
@@ -62,6 +66,8 @@ services:
       - db
     env_file:
       - .env
+    volumes:
+      - archivos_compartidos:/app/app/media/
     build:
       context: .
       dockerfile: ./compose/web-server/Dockerfile
