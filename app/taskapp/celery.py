@@ -5,7 +5,9 @@ from app.db.session import SessionLocal
 from celery import Celery  # type: ignore
 from config import settings
 from libs.lib_manejo_csv import lee_txt, detect_file_type, lee_csv
-from scripts.enrichement.overrepresentation import run_ora
+from libs.overrepresentation import run_ora
+
+# from scripts.enrichement.overrepresentation import run_ora
 
 celery_app = Celery(
     __name__, broker=settings.CELERY_BROKER_URL, backend=settings.CELERY_RESULT_BACKEND  # type: ignore # noqa

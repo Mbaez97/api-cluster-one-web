@@ -4,16 +4,16 @@ import time
 import random
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query  # noqa F401 # type: ignore
-from fastapi.responses import StreamingResponse  # noqa F401 # type: ignore
-from sqlalchemy.orm import Session  # noqa F401 # type: ignore
+from fastapi import APIRouter, Depends, HTTPException, Query  # type: ignore
+from fastapi.responses import StreamingResponse  # type: ignore
+from sqlalchemy.orm import Session  # type: ignore
 
 from app.api import deps
 from app import crud
 from app.api.utils import execute_cluster_one
 from uuid import uuid4
 from app.models import Layout
-from app.taskapp.celery import async_creation_edge_for_cluster
+from app.taskapp.celery import async_execute_enrichment
 from app.api.api_v1.endpoints.graph import (  # noqa F401 # type: ignore
     get_weight_by_protein,
     get_weight_by_interactions_list,
@@ -201,6 +201,7 @@ def run_cluster_one(
         None, description="Max overlap of clusters", gt=0
     ),  # noqa
     penalty: float = Query(None, description="Penalty of clusters", gt=0),
+    goa_file: str = Query(None, description="GOA file"),
 ):
     """
     Get All Cluster data from ClusterOne
@@ -257,6 +258,11 @@ def run_cluster_one(
         _exist_params = True
         print("LOGS: Params already exists")
         response = crud.cluster_graph.get_file_by_params(db, params_id=_params_obj.id)  # type: ignore # noqa
+
+    # Parallel execution of enrichment
+    async_execute_enrichment.delay(_params_obj.id, goa_file)
+
+    # Parse response
     _clusters = []
     _total_protein_uses_time = 0
     _total_edge_uses_time = 0
@@ -358,26 +364,9 @@ def run_cluster_one(
             f"LOGS: Total Execution Time: {(end_time - start_time):.4f} seconds"  # noqa
         )  # noqa
         return response_data
-    # print("LOGS: Creating edges in DB")
-    # for _cluster in _clusters:
-    #     # Async Create edge for cluster
-    #     # async_creation_edge_for_cluster.delay(
-    #     #     cluster_edges=_cluster["edges"],
-    #     #     ppi_id=pp_id,
-    #     #     cluster_id=_cluster["code"],
-    #     # )
-    #     async_creation_edge_for_cluster.apply_async(
-    #         kwargs={
-    #             "cluster_edges": _cluster["edges"],
-    #             "ppi_id": pp_id,
-    #             "cluster_id": _cluster["code"],
-    #         },
-    #     )
+
     response_data = process_data(_clusters)
-    # _response_final = {
-    #     "params_id": _params_obj.id,
-    #     "data": response_data,
-    # }
+
     end_time = time.time()
     print(
         f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"  # noqa

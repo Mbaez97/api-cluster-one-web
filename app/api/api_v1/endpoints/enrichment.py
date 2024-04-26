@@ -1,9 +1,12 @@
 """Get Enrichment data"""
+
 import math
 from fastapi import (  # noqa F401 # type: ignore
     APIRouter,
     Depends,
     HTTPException,
+    File,
+    UploadFile,
 )  # noqa F401 # type: ignore
 from sqlalchemy.orm import Session  # type: ignore
 
@@ -68,17 +71,39 @@ def get_params_scores(
         raise HTTPException(status_code=404, detail="Params not found")
     _response = {
         "id": 3,
-        "ora_bp_score": round(params.ora_bp_score, 2)
-        if params.ora_bp_score
-        else 0,  # noqa
-        "ora_mf_score": round(params.ora_mf_score, 2)
-        if params.ora_mf_score
-        else 0,  # noqa
-        "ora_cc_score": round(params.ora_cc_score, 2)
-        if params.ora_cc_score
-        else 0,  # noqa
-        "ppi_graph_id": round(params.ppi_graph_id, 2)
-        if params.ppi_graph_id
-        else 0,  # noqa
+        "ora_bp_score": (
+            round(params.ora_bp_score, 2) if params.ora_bp_score else 0
+        ),  # noqa
+        "ora_mf_score": (
+            round(params.ora_mf_score, 2) if params.ora_mf_score else 0
+        ),  # noqa
+        "ora_cc_score": (
+            round(params.ora_cc_score, 2) if params.ora_cc_score else 0
+        ),  # noqa
+        "ppi_graph_id": (
+            round(params.ppi_graph_id, 2) if params.ppi_graph_id else 0
+        ),  # noqa
     }
     return _response
+
+
+@router.post("/upload/goa/")
+def get_or_create_ppi_graph_from_file(
+    file: UploadFile = File(None),
+):
+    """
+    Create PPI data from file
+    """
+    if file:
+        # Save file in media
+        _file_path = f"/app/app/media/enrichment/{file.filename}"
+        try:
+            with open(_file_path, "wb") as buffer:
+                buffer.write(file.file.read())
+                buffer.close()
+            return {"goa_file": file.filename}
+        except Exception as e:
+            print(e)
+            return {"goa_file": None}
+    else:
+        raise HTTPException(status_code=404, detail="File not found")
