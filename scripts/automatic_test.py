@@ -100,13 +100,13 @@ def main():
             )
             if r.status_code == 200:
                 print("ClusterONE executed")
-                _cluster_json = r.json()
-                print(_cluster_json)
+                # _cluster_json = r.json()
             else:
                 print(r.text)
                 break
             # Step 4: Execute ORA
             # Step 5: Write results
+    print("Done")
 
 
 if __name__ == "__main__":

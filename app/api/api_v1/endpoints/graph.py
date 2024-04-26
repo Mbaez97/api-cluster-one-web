@@ -65,6 +65,7 @@ def get_or_create_ppi_graph_from_file(
         # Save file in media
         _file_path = f"/app/app/media/ppi/{file.filename}"
         try:
+            print(_file_path)
             with open(_file_path, "wb") as buffer:
                 buffer.write(file.file.read())
                 _size = list(buffer)
@@ -86,9 +87,9 @@ def get_or_create_ppi_graph_from_file(
         }
         _ppi_obj = crud.ppi_graph.get_ppi_by_name(db, name=file.filename)
         if not _ppi_obj:
+            print("LOGS: PPI created")
             _new_ppi = crud.ppi_graph.create_ppi_from_file(db, obj=_data)
             async_insert_redis.delay(_new_ppi.id)
-            # async_creation_edge_for_ppi.delay(_new_ppi.id)
             response = {
                 "id": _new_ppi.id,
                 "name": _new_ppi.name,
@@ -99,7 +100,6 @@ def get_or_create_ppi_graph_from_file(
             }
             return response
         async_insert_redis.delay(_ppi_obj.id)
-        # async_creation_edge_for_ppi.delay(_ppi_obj.id)
         response = {
             "id": _ppi_obj.id,
             "name": _ppi_obj.name,
