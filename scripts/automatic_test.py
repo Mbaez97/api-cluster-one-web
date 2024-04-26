@@ -29,7 +29,7 @@ import time
 HERE = Path(__file__).parent
 sys.path.append(str(HERE / "../"))
 print(HERE)
-from libs.lib_manejo_csv import lee_csv  # noqa
+from libs.lib_manejo_csv import lee_csv, crea_csv, escribe_csv  # noqa
 
 
 def open_binary_file(file_path):
@@ -44,10 +44,14 @@ def main():
     PATH_TEST = "/home/marcelo.baez/develop/api-cluster-one-web/dataset_test_performance/"  # noqa
     if os.path.exists(PATH_TEST):
         print("Path exists")
+        crea_csv(
+            "measures.csv", ["PPI", "Time to cluster", "Time to ORA", "Total time"]
+        )
         # Get all ppi files name
         ppi_test_dir = PATH_TEST + "parsed/"
         ppi_files = os.listdir(ppi_test_dir)
         for ppi_file in ppi_files:
+            start_time = time.time()
             # Step 1: Upload PPI
             print("STEP 1: Upload PPI")
             print(f"Executing for {ppi_file}")
@@ -100,12 +104,38 @@ def main():
             )
             if r.status_code == 200:
                 print("ClusterONE executed")
-                # _cluster_json = r.json()
+                _cluster_json = r.json()
+                _cluster_to_test_ora = _cluster_json[0]["id"]
             else:
                 print(r.text)
                 break
-            # Step 4: Execute ORA
+
+            end_cluster_time = time.time()
+            start_time_ora = time.time()
+            # Step 4: Call API for ORA results
+            while True:
+                print("STEP 4: Call API for ORA results")
+                r = requests.get(
+                    f"http://localhost:8203/v1/api/enrichment/complex/{_cluster_to_test_ora}/?cluster_id={_cluster_to_test_ora}",  # noqa
+                )
+                if r.status_code == 200:
+                    print("ORA results")
+                    _ora_json = r.json()
+                    print(_ora_json)
+                    break
+                else:
+                    print(r.text)
+            end_time_ora = time.time()
             # Step 5: Write results
+            escribe_csv(
+                "measures.csv",
+                [
+                    ppi_file,
+                    f"{(end_cluster_time - start_time):.4f} seconds",  # noqa
+                    f"{(end_time_ora - start_time_ora):.4f} seconds",  # noqa
+                    f"{(end_time_ora - start_time):.4f} seconds",  # noqa
+                ],
+            )
     print("Done")
 
 
