@@ -105,12 +105,15 @@ def main():
             if r.status_code == 200:
                 print("ClusterONE executed")
                 _cluster_json = r.json()
-                _cluster_to_test_ora = _cluster_json[0]["id"]
+                _cluster_to_test_ora = _cluster_json[0]["code"]
             else:
                 print(r.text)
                 break
 
             end_cluster_time = time.time()
+            print(
+                f"Time to cluster: {end_cluster_time - start_time:.4f} seconds"
+            )  # noqa
             start_time_ora = time.time()
             # Step 4: Call API for ORA results
             while True:
@@ -126,6 +129,7 @@ def main():
                 else:
                     print(r.text)
             end_time_ora = time.time()
+            print(f"Time to ORA: {end_time_ora - start_time_ora:.4f} seconds")
             # Step 5: Write results
             escribe_csv(
                 "measures.csv",
