@@ -40,7 +40,8 @@ def open_binary_file(file_path):
 
 def main():
     # Read all ppi files, i don't know how many files there are
-    PATH_TEST = "/Users/marcelobaez/Desarrollo Academico/paccanaro-lab/develop/api-cluster-one-web/dataset_test_performance/"  # noqa
+    # PATH_TEST = "/Users/marcelobaez/Desarrollo Academico/paccanaro-lab/develop/api-cluster-one-web/dataset_test_performance/"  # noqa
+    PATH_TEST = "/home/marcelo.baez/develop/api-cluster-one-web/dataset_test_performance/"  # noqa
     if os.path.exists(PATH_TEST):
         print("Path exists")
         # Get all ppi files name
@@ -95,7 +96,7 @@ def main():
             # Step 3: Execute ClusterONE
             print("STEP 3: Execute ClusterONE")
             r = requests.post(
-                f"http://localhost:8203/v1/api/cluster_one/run/?pp_id={_ppi_json["id"]}",
+                f"http://localhost:8203/v1/api/cluster_one/run/?pp_id={_ppi_json['id']}",
             )
             if r.status_code == 200:
                 print("ClusterONE executed")

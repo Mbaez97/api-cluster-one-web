@@ -1,4 +1,5 @@
 """crud protein"""
+
 from redis import Redis  # type: ignore
 from app import schemas
 from app.crud.crud_base import CRUDBase
@@ -74,12 +75,10 @@ class CRUDProtein(
         protein_1 = Protein(  # type: ignore
             name=_data,
             description="Automatic node created from PPI file",
-            # score=0.0,
             url_info=_url + _data,
         )
         db.add(protein_1)
         db.commit()
-        print("Protein created: ", protein_1.name)
         return protein_1
 
     def get_all_by_cluster(self, db, *, cluster_id: int) -> List[Protein]:

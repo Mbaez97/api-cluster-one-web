@@ -259,9 +259,6 @@ def run_cluster_one(
         print("LOGS: Params already exists")
         response = crud.cluster_graph.get_file_by_params(db, params_id=_params_obj.id)  # type: ignore # noqa
 
-    # Parallel execution of enrichment
-    async_execute_enrichment.delay(_params_obj.id, goa_file)
-
     # Parse response
     _clusters = []
     _total_protein_uses_time = 0
@@ -349,6 +346,10 @@ def run_cluster_one(
                 "ppi_id": pp_id,
             }
         )
+
+    # Parallel execution of enrichment
+    async_execute_enrichment.delay(_params_obj.id, goa_file)
+
     if _exist_params:
         print("LOGS: Params already exists")
         response_data = process_data(_clusters)
@@ -366,7 +367,6 @@ def run_cluster_one(
         return response_data
 
     response_data = process_data(_clusters)
-
     end_time = time.time()
     print(
         f"LOGS: ClusterOne Execution Time: {(cluster_one_execution_time - start_time):.4f} seconds"  # noqa
