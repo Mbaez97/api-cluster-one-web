@@ -101,7 +101,7 @@ def get_or_create_ppi_graph_from_file(
             with open(_file_path, "wb") as buffer:
                 buffer.write(file.file.read())
                 buffer.close()
-            return {"goa_file": file.filename}
+            return {"goa_file": _file_path}
         except Exception as e:
             print(e)
             return {"goa_file": None}
