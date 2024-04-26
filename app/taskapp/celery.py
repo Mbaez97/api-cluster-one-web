@@ -194,11 +194,11 @@ def async_execute_enrichment(
 ) -> str:
     db = SessionLocal()
     _params_obj = crud.params.get_by_id(db, id=params_id)
-    response = crud.cluster_graph.get_file_by_params(
+    _cluster = crud.cluster_graph.get_clusters_by_params(
         db, params_id=_params_obj.id
     )  # noqa
-    _cluster = response[0]
-    _file_path = _cluster.data
+    # _cluster = response[0]
+    _file_path = _cluster[0].data
     run_ora(
         _file_path,
         goa_file,
