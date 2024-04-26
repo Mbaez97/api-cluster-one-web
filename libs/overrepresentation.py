@@ -3,6 +3,7 @@ import pandas as pd  # type: ignore
 import logging
 import requests  # type: ignore
 import json
+import time
 from rich.progress import track  # type: ignore
 from libs.golib.core.gene_ontology import GeneOntology  # type: ignore
 from libs.lib_manejo_csv import lee_csv  # noqa
@@ -57,14 +58,7 @@ def get_proteins_in_complexes(complexes):
     proteins = set()
     for _, prots in complexes.items():
         proteins |= set(prots)
-    _proteins = []
-    for _prot in proteins:
-        try:
-            _proteins.append(_prot)
-        except Exception as e:
-            print(e)
-            pass
-    return _proteins
+    return proteins
 
 
 def get_go_data(go_id: str):
@@ -190,7 +184,8 @@ def run_ora(
     complexes_prots = get_proteins_in_complexes(complexes)
     num_complexes = len(complexes)
     logger.info(f"Found {num_complexes} complexes")
-
+    logger.info(f"Found {len(complexes_prots)} proteins in the complexes")
+    time.sleep(5)
     logger.info("Building structure Ontology in memory...")
     go = GeneOntology(obo=obo_file)
     go.build_ontology()
