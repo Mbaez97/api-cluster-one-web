@@ -96,7 +96,7 @@ def main():
             # Step 3: Execute ClusterONE
             print("STEP 3: Execute ClusterONE")
             r = requests.post(
-                f"http://localhost:8203/v1/api/cluster_one/run/?pp_id={_ppi_json['id']}",
+                f"http://localhost:8203/v1/api/cluster_one/run/?pp_id={_ppi_json['id']}&goa_file={_goa_json['goa_file']}",  # noqa
             )
             if r.status_code == 200:
                 print("ClusterONE executed")
