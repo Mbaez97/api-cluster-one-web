@@ -193,6 +193,6 @@ if __name__ == "__main__":
     #     wieght=True,
     # )
     parse_ppi_file_hq_to_txt(
-        "./dataset_test_performance/hq_file/OryzaSativa_binary_hq.txt",
-        "./dataset_test_performance/parsed/OryzaSativa_binary.txt",
+        "./dataset_test_performance/hq_file/SaccharomycesCerevisiaeS288C_binary_hq.txt",
+        "./dataset_test_performance/parsed/SaccharomycesCerevisiaeS288C_binary.txt",
     )
