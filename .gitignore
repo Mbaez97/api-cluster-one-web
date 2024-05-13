@@ -138,5 +138,5 @@ dmypy.json
 *.png
 
 *.obo
-.gaf
+*.gaf
 .DS_Store
