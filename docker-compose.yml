@@ -24,6 +24,8 @@ services:
     depends_on:
       - db
       - redis
+      - celeryworker
+      - celerybeat
     command: uvicorn app.web_server:app --reload --host 0.0.0.0 --port 8000 --log-level debug
     networks:
       - cluster-one-web_cluster_one_network
