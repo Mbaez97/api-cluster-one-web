@@ -1,7 +1,8 @@
 """Get Graph data"""
 
+import os
 import json
-from fastapi import (  # noqa F401 # type: ignore
+from fastapi import (  # type: ignore
     APIRouter,
     Depends,
     HTTPException,
@@ -9,12 +10,12 @@ from fastapi import (  # noqa F401 # type: ignore
     UploadFile,
 )  # noqa F401 # type: ignore
 from sqlalchemy.orm import Session  # type: ignore
-import os
 from app import crud
 from app.api import deps
 from app.models import Layout
-from app.taskapp.celery import async_creation_edge_for_ppi, async_insert_redis
+from app.taskapp.celery import async_insert_redis
 from redis import Redis  # type: ignore
+from libs.lib_manejo_csv import detect_file_type, lee_csv, lee_txt, parse_ppi_csv_to_txt
 
 router = APIRouter()
 
@@ -63,32 +64,60 @@ def get_or_create_ppi_graph_from_file(
     """
     if file:
         # Save file in media
+        _type = detect_file_type(file.filename)
         _file_path = f"/app/app/media/ppi/{file.filename}"
-        try:
-            print(_file_path)
-            with open(_file_path, "wb") as buffer:
-                buffer.write(file.file.read())
-                _size = list(buffer)
-                buffer.close()
-        except Exception as e:
-            print(e)
-            _size = []
+        print(_file_path)
+        with open(_file_path, "wb") as buffer:
+            buffer.write(file.file.read())
+            buffer.close()
+        if _type == "txt":
+            _file = lee_txt(_file_path)
+            _size = len(_file)
+            _file_name = file.filename
+        elif _type == "csv":
+            _old_file_path = _file_path
+            _file = lee_csv(_old_file_path)
+            _data_columns = len(_file[0])
+            _file_path = _file_path.replace(".csv", ".txt")
+            if _data_columns < 3:
+                weight = False
+            else:
+                weight = True
+            parse_ppi_csv_to_txt(_old_file_path, _file_path, wieght=weight)
+            # Delete old file
+            os.remove(_old_file_path)
+            _size = len(lee_txt(_file_path))
+            _file_name = file.filename.replace(".csv", ".txt")
+        else:
+            raise HTTPException(
+                status_code=404, detail="File type not supported"
+            )  # noqa
         _layout = db.query(Layout).filter(Layout.name == "random").first()
+        if not _layout:
+            obj = {
+                "name": "random",
+                "animated": False,
+                "node_spacing": 10,
+                "randomize": True,
+                "max_simulation_time": 1000,
+            }
+            _layout = crud.layout.quick_create_layout(db, obj=obj)
         _data = {
             "external_weight": 0,
             "internal_weight": 0,
             "density": 0,
-            "size": len(_size),
+            "size": _size,
             "quality": 0,
             "layout": _layout,
             "data": _file_path,
             "name": file.filename,
             "preloaded": False,
         }
-        _ppi_obj = crud.ppi_graph.get_ppi_by_name(db, name=file.filename)
+        _ppi_obj = crud.ppi_graph.get_ppi_by_name(db, name=_file_name)
         if not _ppi_obj:
-            print("LOGS: PPI created")
+            print("LOGS: PPI will be created")
             _new_ppi = crud.ppi_graph.create_ppi_from_file(db, obj=_data)
+            # Async insert edges to redis
             async_insert_redis.delay(_new_ppi.id)
             response = {
                 "id": _new_ppi.id,
@@ -99,16 +128,17 @@ def get_or_create_ppi_graph_from_file(
                 "preloaded": _new_ppi.preloaded,
             }
             return response
+        print("LOGS: PPI already exists")
+        # Async insert edges to redis
         async_insert_redis.delay(_ppi_obj.id)
         response = {
             "id": _ppi_obj.id,
             "name": _ppi_obj.name,
             "data": _ppi_obj.data,
             "density": _ppi_obj.density,
-            "size": len(_size),
+            "size": _ppi_obj.size,
             "preloaded": _ppi_obj.preloaded,
         }
-        print("LOGS: PPI already exists")
         return response
     else:
         raise HTTPException(status_code=404, detail="File not found")
