@@ -178,6 +178,7 @@ def run_ora(
     background = get_proteins_from_gaf_file(goa_file)
     total_background = len(background)
     logger.info(f"Found {total_background} proteins in the proteome")
+    print(background[len(background) - 5 : len(background)])
 
     logger.info(f"Processing Complexes file {complexes_file}...")
     complexes = read_complexes(complexes_file, max_group_size)
@@ -198,10 +199,11 @@ def run_ora(
     logger.info("Building unified annotations matrix...")
     all_prots = set(background) | set(complexes_prots)
     bg_cond = annotations["Protein"].isin(all_prots)
+    print(bg_cond)
     table = (
         annotations[bg_cond]
         .pivot(index="GO ID", columns="Protein", values="Score")
-        .fillna(0)
+        .fillna(0, inplace=True)
     )
     table_prots = table.columns.values
     num_hypotheses = table.shape[0]

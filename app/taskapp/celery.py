@@ -94,7 +94,7 @@ def async_insert_redis(
         ppi_dataset = lee_csv(_ppi_obj.data, delimiter=",")
     else:
         ppi_dataset = lee_txt(_ppi_obj.data)
-    r = Redis(host="redis", port=6379, db=3)
+    r = Redis(host="cl1_redis", port=6379, db=3)
     _objects = []
     for data in ppi_dataset:
         if _file_type == "txt":

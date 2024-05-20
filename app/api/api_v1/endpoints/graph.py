@@ -27,7 +27,7 @@ def get_weight_by_protein(
     """
     Get weight by protein
     """
-    r = Redis(host="redis", port=6379, db=3)
+    r = Redis(host="cl1_redis", port=6379, db=3)
     _key = f"{protein1_id}-{protein2_id}-{ppi_id}"
     data = r.get(_key)
     if not data:
@@ -44,7 +44,7 @@ def get_weight_by_interactions_list(
     """
     Get weight by protein
     """
-    r = Redis(host="redis", port=6379, db=3)
+    r = Redis(host="cl1_redis", port=6379, db=3)
     data = r.mget(interactions_key)
     if not data:
         return None

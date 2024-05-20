@@ -48,7 +48,7 @@ class CRUDProtein(
     def update_redis(self, proteins: list) -> None:
         """Update redis"""
         _proteins = self.mapping_to_uniprot_id(proteins)
-        r = Redis(host="redis", port=6379, db=3)
+        r = Redis(host="cl1_redis", port=6379, db=3)
         for _prot in _proteins:
             print(_prot)
             r.sadd("proteins", _prot)
