@@ -1,13 +1,35 @@
-"""crud protein"""
-
 from app import schemas
 from app.crud.crud_base import CRUDBase
-from app.models import PPIGraph, ClusterGraph
+from app.models import PPIGraph, ClusterGraph, Layout
 from libs.lib_manejo_csv import lee_csv
 
-"""crud ppi graph"""
+
+# CRUD Layout
+class CRUDLayout(CRUDBase[Layout, schemas.LayoutCreate, schemas.LayoutUpdate]):
+    def get_all_layout(self, db) -> Layout:
+        """Get all layout"""
+        return db.query(Layout).all()
+
+    def get_layout_by_id(self, db, *, id: int) -> Layout:
+        """Get layout by id"""
+        return db.query(Layout).filter(Layout.id == id).first()
+
+    def quick_create_layout(self, db, *, obj: dict) -> Layout:
+        """Quick create layout"""
+        db_obj = Layout(  # type: ignore
+            name=obj["name"],
+            animated=obj["animated"],
+            node_spacing=obj["node_spacing"],
+            randomize=obj["randomize"],
+            max_simulation_time=obj["max_simulation_time"],
+        )
+        db.add(db_obj)
+        db.commit()
+        db.refresh(db_obj)
+        return db_obj
 
 
+# CRUD PPI Graph
 class CRUDPPIGraph(CRUDBase[PPIGraph, schemas.GraphCreate, schemas.GraphUpdate]):  # type: ignore # noqa
     def get_all_ppi(self, db) -> PPIGraph:
         """Get all ppi"""
@@ -37,9 +59,7 @@ class CRUDPPIGraph(CRUDBase[PPIGraph, schemas.GraphCreate, schemas.GraphUpdate])
         return db_obj
 
 
-"""crud cluster graph"""
-
-
+# CRUD Cluster Graph
 class CRUDClusterGraph(
     CRUDBase[ClusterGraph, schemas.GraphCreate, schemas.GraphUpdate]
 ):
@@ -119,3 +139,4 @@ class CRUDClusterGraph(
 
 cluster_graph = CRUDClusterGraph(ClusterGraph)
 ppi_graph = CRUDPPIGraph(PPIGraph)
+layout = CRUDLayout(Layout)

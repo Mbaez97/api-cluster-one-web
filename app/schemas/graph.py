@@ -11,7 +11,17 @@ class LayoutBase(BaseModel):
     name: Optional[str]
     animated: Optional[bool]
     node_spacing: Optional[float]
+    randomize: Optional[bool]
     max_simulation_time: Optional[int]
+
+
+class LayoutUpdate(LayoutBase):
+    updated_at: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+class LayoutCreate(LayoutBase):
+    created_at: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    updated_at: str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 class GraphBase(BaseModel):
