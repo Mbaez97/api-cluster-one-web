@@ -1,8 +1,6 @@
-"""Protein models"""
-
-from sqlalchemy import Column, String, Float, Boolean, Integer
-from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, String, Float, Boolean, Integer  # type: ignore
+from sqlalchemy.ext.declarative import declared_attr  # type: ignore
+from sqlalchemy.orm import relationship  # type: ignore
 
 from app.db.base_class import BaseWithDatetime
 

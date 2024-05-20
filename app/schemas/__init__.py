@@ -7,7 +7,13 @@ from .protein import (  # noqa
     OverlappingProteinUpdate,
     OverlappingProteinCreate,
 )
-from .graph import GraphCreate, GraphUpdate, PPIGraphResponse  # noqa
+from .graph import (  # noqa
+    GraphCreate,
+    GraphUpdate,
+    PPIGraphResponse,
+    LayoutCreate,
+    LayoutUpdate,
+)  # noqa
 from .edge import EdgeCreate, EdgeUpdate  # noqa
 from .params import ParamsCreate, ParamsUpdate, ParamsResponse  # noqa
 from .enrichment import (  # noqa
