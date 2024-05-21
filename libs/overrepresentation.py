@@ -185,11 +185,10 @@ def run_ora(
     complexes_prots = get_proteins_in_complexes(complexes)
     num_complexes = len(complexes)
     # I need the last 5 complexex prots, this is a set
-    print(complexes_prots)
+    print(list(complexes_prots)[:5])
 
     logger.info(f"Found {num_complexes} complexes")
     logger.info(f"Found {len(complexes_prots)} proteins in the complexes")
-    time.sleep(5)
 
     logger.info("Building structure Ontology in memory...")
     go = GeneOntology(obo=obo_file)
@@ -203,7 +202,7 @@ def run_ora(
 
     logger.info("Building unified annotations matrix...")
     all_prots = set(background) | set(complexes_prots)
-    print(all_prots[len(all_prots) - 5 : len(all_prots)])
+    print(list(all_prots)[:5])
     bg_cond = annotations["Protein"].isin(all_prots)
 
     table = (
