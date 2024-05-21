@@ -52,7 +52,6 @@ def parse_ppi_csv_to_txt(
     with open(file_out_path, "w") as f:
         print("LOGS: Creating file")
         for data in ppi_dataset:
-            print(data)
             if wieght:
                 f.write(f"{data[0]}\t{data[1]}\t{data[2]}\n")
             else:
@@ -69,7 +68,6 @@ def parse_ppi_file_hq_to_txt(
         for i, data in enumerate(ppi_dataset):
             # breakpoint()
             _data = data.split("\t")
-            print(_data)
             if i == 0:
                 continue
             if wieght:

@@ -184,9 +184,12 @@ def run_ora(
     complexes = read_complexes(complexes_file, max_group_size)
     complexes_prots = get_proteins_in_complexes(complexes)
     num_complexes = len(complexes)
+    print(complexes_prots[len(complexes_prots) - 5 : len(complexes_prots)])
+
     logger.info(f"Found {num_complexes} complexes")
     logger.info(f"Found {len(complexes_prots)} proteins in the complexes")
     time.sleep(5)
+
     logger.info("Building structure Ontology in memory...")
     go = GeneOntology(obo=obo_file)
     go.build_ontology()
@@ -195,22 +198,26 @@ def run_ora(
     go.load_gaf_file(goa_file, "overrep")
     go.up_propagate_annotations("overrep")
     annotations = go.annotations("overrep")
+    print(annotations.head())
 
     logger.info("Building unified annotations matrix...")
     all_prots = set(background) | set(complexes_prots)
+    print(all_prots[len(all_prots) - 5 : len(all_prots)])
     bg_cond = annotations["Protein"].isin(all_prots)
-    print(bg_cond)
+
     table = (
         annotations[bg_cond]
         .pivot(index="GO ID", columns="Protein", values="Score")
-        .fillna(0, inplace=True)
+        .fillna(0.0)
     )
     table_prots = table.columns.values
     num_hypotheses = table.shape[0]
 
     # the background is shared for all complexes,
     # so we can pre-calculate the counts
+    logger.info("Calculating background counts...")
     annotated_bg = list(set(background) & set(table_prots))
+    print(annotated_bg[len(annotated_bg) - 5 : len(annotated_bg)])
     bg_counts = table[annotated_bg].sum(axis=1)
     # this is more than anything a sanity check, should not change the value
     bg_counts = bg_counts[bg_counts > 0]
@@ -220,6 +227,7 @@ def run_ora(
         f"Found {num_complexes} complexes," " analyzing overrepresentation"
     )  # noqa
     overrepresented_goterms = []
+    time.sleep(5)
     for i, (complex_id, proteins) in track(
         enumerate(complexes.items()),
         description="Analyzing...",
