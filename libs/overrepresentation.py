@@ -184,7 +184,8 @@ def run_ora(
     complexes = read_complexes(complexes_file, max_group_size)
     complexes_prots = get_proteins_in_complexes(complexes)
     num_complexes = len(complexes)
-    print(complexes_prots[len(complexes_prots) - 5 : len(complexes_prots)])
+    # I need the last 5 complexex prots, this is a set
+    print(complexes_prots)
 
     logger.info(f"Found {num_complexes} complexes")
     logger.info(f"Found {len(complexes_prots)} proteins in the complexes")
