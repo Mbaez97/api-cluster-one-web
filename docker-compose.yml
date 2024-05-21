@@ -22,8 +22,8 @@ services:
     ports: 
       - 8000:8000    
     depends_on:
-      - db
-      - redis
+      - cl1_db
+      - cl1_redis
       - celeryworker
       - celerybeat
     command: uvicorn app.web_server:app --reload --host 0.0.0.0 --port 8000 --log-level debug
@@ -31,10 +31,10 @@ services:
       - cluster-one-web_cluster_one_network
       - default
 
-  redis:
+  cl1_redis:
     image: redis:5.0
 
-  db:
+  cl1_db:
     build:
       context: .
       dockerfile: ./compose/db/Dockerfile
@@ -49,8 +49,8 @@ services:
     platform: "linux/amd64"
     image: api-cluster-one-web_celeryworker
     depends_on:
-      - redis
-      - db
+      - cl1_redis
+      - cl1_db
     env_file:
       - .env
     volumes:
@@ -64,8 +64,8 @@ services:
     platform: "linux/amd64"
     image: api-cluster-one-web_celerybeat
     depends_on:
-      - redis
-      - db
+      - cl1_redis
+      - cl1_db
     env_file:
       - .env
     build:
