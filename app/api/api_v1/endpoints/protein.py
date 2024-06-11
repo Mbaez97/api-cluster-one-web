@@ -82,9 +82,11 @@ def get_data_from_uniprot(
         final_response = {
             "protein": protein_name,
             "data": "https://www.uniprot.org/uniprotkb/" + protein_name,
+            "is_url": True,
         }
         return final_response
     return {
         "protein": protein_name,
         "data": "This protein id is not a valid Uniprot ID",
+        "is_url": False,
     }
