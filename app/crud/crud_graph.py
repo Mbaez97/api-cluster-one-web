@@ -35,6 +35,10 @@ class CRUDPPIGraph(CRUDBase[PPIGraph, schemas.GraphCreate, schemas.GraphUpdate])
         """Get all ppi"""
         return db.query(PPIGraph).all()
 
+    def get_all_preloaded_ppi(self, db) -> PPIGraph:
+        """Get all preloaded ppi"""
+        return db.query(PPIGraph).filter(PPIGraph.preloaded == True).all()
+
     def get_ppi_by_id(self, db, *, id: int) -> PPIGraph:
         """Get ppi by id"""
         return db.query(PPIGraph).filter(PPIGraph.id == id).first()
@@ -96,6 +100,17 @@ class CRUDClusterGraph(
             .all()
         )
 
+    def get_cluster_by_params_by_file_id(
+        self, db, *, params_id: int, file_id: int
+    ) -> ClusterGraph:
+        """Get cluster by params"""
+        return (
+            db.query(ClusterGraph)
+            .filter(ClusterGraph.cluster_one_log_params_id == params_id)
+            .filter(ClusterGraph.data_file_id == file_id)
+            .first()
+        )
+
     def get_proteins_by_cluster(self, db, *, id: int) -> list:
         """Get proteins by cluster"""
         cluster = db.query(ClusterGraph).filter(ClusterGraph.id == id).all()
@@ -129,6 +144,7 @@ class CRUDClusterGraph(
             p_value=obj["p_value"],
             layout=obj["layout"],
             data=obj["data"],
+            data_file_id=obj["data_file_id"],
             cluster_one_log_params_id=obj["cluster_one_log_params_id"],
         )
         db.add(db_obj)

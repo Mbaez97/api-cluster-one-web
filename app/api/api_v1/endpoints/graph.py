@@ -74,6 +74,11 @@ def get_or_create_ppi_graph_from_file(
             _file = lee_txt(_file_path)
             _size = len(_file)
             _file_name = file.filename
+            _data_columns = len(_file[0])
+            if _data_columns < 3:
+                weight = False
+            else:
+                weight = True
         elif _type == "csv":
             _old_file_path = _file_path
             _file = lee_csv(_old_file_path)
@@ -126,6 +131,7 @@ def get_or_create_ppi_graph_from_file(
                 "density": _new_ppi.density,
                 "size": _new_ppi.size,
                 "preloaded": _new_ppi.preloaded,
+                "weighted": weight,
             }
             return response
         print("LOGS: PPI already exists")
@@ -138,6 +144,7 @@ def get_or_create_ppi_graph_from_file(
             "density": _ppi_obj.density,
             "size": _ppi_obj.size,
             "preloaded": _ppi_obj.preloaded,
+            "weighted": weight,
         }
         return response
     else:
@@ -168,7 +175,7 @@ def get_all_ppi_graph(
     """
     Get All PPI data
     """
-    _ppi = crud.ppi_graph.get_all_ppi(db)
+    _ppi = crud.ppi_graph.get_all_preloaded_ppi(db)
     response = []
     for ppi in _ppi:  # type: ignore
         response.append(
@@ -182,6 +189,7 @@ def get_all_ppi_graph(
                 "size": ppi.size,
                 "preloaded": ppi.preloaded,
                 "file_name": ppi.name,
+                "weighted": ppi.weighted,
             }
         )
     return response

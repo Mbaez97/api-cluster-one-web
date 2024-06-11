@@ -79,7 +79,7 @@ def process_data(data):
                     node_protein_complex = {
                         "data": {
                             "id": protein_complex["code"],
-                            "label": f"COMPLEX - {protein_complex['code']}",
+                            "label": f"COMPLEX - {protein_complex['file_id']}",
                             "overlapping": False,
                             "type": "proteinComplex",
                         }
@@ -184,6 +184,9 @@ def process_data(data):
             for i, e in enumerate(cluster["edges"])
             if i not in pop_index_edges  # noqa
         ]
+
+    # I want to order the clusters by size (I have key size)
+    data = sorted(data, key=lambda k: k["size"], reverse=True)
     end_time = time.time()
     print(f"LOGS: Processing data time: {(end_time - star_time):.4f} seconds")
     return data
@@ -267,6 +270,7 @@ def run_cluster_one(
     for complex in response:
         _layout = db.query(Layout).filter(Layout.name == "random").first()
         _obj = {
+            "data_file_id": int(complex[0]),
             "size": complex[1],
             "density": complex[2],
             "internal_weight": complex[3],
@@ -337,6 +341,7 @@ def run_cluster_one(
             {
                 "params_id": _params_obj.id,
                 "code": str(_cluster_obj.id),
+                "file_id": _cluster_obj.data_file_id,
                 "size": _cluster_obj.size,
                 "density": _cluster_obj.density,
                 "quality": _cluster_obj.quality,
